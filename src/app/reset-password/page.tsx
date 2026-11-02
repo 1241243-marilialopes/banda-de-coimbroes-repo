@@ -29,7 +29,7 @@ function ResetPasswordForm() {
         </p>
         <Link
           href="/"
-          className="inline-block mt-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg transition text-sm"
+          className="inline-block mt-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 transition text-sm"
         >
           Voltar ao Início
         </Link>
@@ -86,7 +86,7 @@ function ResetPasswordForm() {
         </p>
         <Link
           href="/"
-          className="inline-block mt-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg transition text-sm"
+          className="inline-block mt-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 transition text-sm"
         >
           Entrar Agora
         </Link>
@@ -117,7 +117,7 @@ function ResetPasswordForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full pl-10 pr-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+            className="w-full pl-10 pr-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
           />
         </div>
       </div>
@@ -136,7 +136,7 @@ function ResetPasswordForm() {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             placeholder="••••••••"
-            className="w-full pl-10 pr-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+            className="w-full pl-10 pr-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
           />
         </div>
       </div>
@@ -144,7 +144,7 @@ function ResetPasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-900 font-bold rounded-lg shadow transition flex items-center justify-center gap-2 mt-4"
+        className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 hover:shadow-red-600/40 transition flex items-center justify-center gap-2 mt-4"
       >
         {loading ? (
           <>
@@ -161,8 +161,8 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-neutral-900 text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-neutral-800 border border-neutral-700 rounded-2xl shadow-2xl p-6 sm:p-8">
+    <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-6 sm:p-8">
         <div className="text-center mb-6">
           <div className="relative w-16 h-16 mx-auto mb-2">
             <Image src="/assets/banda.png" alt="Logo" fill className="object-contain" priority />
@@ -173,11 +173,10 @@ export default function ResetPasswordPage() {
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-center py-8"><Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-500" /></div>}>
+        <Suspense fallback={<div className="text-center py-8"><Loader2 className="w-8 h-8 animate-spin mx-auto text-red-500" /></div>}>
           <ResetPasswordForm />
         </Suspense>
       </div>
     </div>
   );
 }
-

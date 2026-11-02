@@ -26,9 +26,9 @@ export default function CookieBanner() {
       </p>
       <button
         onClick={handleAccept}
-        className="whitespace-nowrap px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-sm rounded shadow transition"
+        className="whitespace-nowrap px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg shadow transition"
       >
-        Ok
+        Aceitar
       </button>
     </div>
   );
