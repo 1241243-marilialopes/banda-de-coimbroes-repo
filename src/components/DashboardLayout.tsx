@@ -1,28 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
+  Home,
   Users,
+  CheckSquare,
   Calendar,
-  Music,
+  ListChecks,
+  BookOpen,
   CreditCard,
-  Settings,
+  FileEdit,
+  User,
   LogOut,
+  Sun,
+  Moon,
   Menu,
   X,
-  FileText,
-  UserCheck,
-  Shield,
+  History,
+  Music,
 } from 'lucide-react';
 
-export interface NavItem {
-  label: string;
-  href: string;
-  icon: any;
+export interface NavSection {
+  heading?: string;
+  items: {
+    label: string;
+    href: string;
+    iconName: string;
+  }[];
 }
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  home: Home,
+  users: Users,
+  check: CheckSquare,
+  calendar: Calendar,
+  presencas: ListChecks,
+  caderneta: BookOpen,
+  music: Music,
+  cotas: CreditCard,
+  backoffice: FileEdit,
+  user: User,
+  history: History,
+};
 
 interface DashboardLayoutProps {
   user: {
@@ -32,18 +54,31 @@ interface DashboardLayoutProps {
     cargo: number;
   };
   title: string;
-  navItems: NavItem[];
   children: React.ReactNode;
 }
 
 export default function DashboardLayout({
   user,
   title,
-  navItems,
   children,
 }: DashboardLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('admin_theme');
+    if (saved === 'dark' || saved === 'light') {
+      setTheme(saved);
+    }
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('admin_theme', next);
+  }
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -58,83 +93,262 @@ export default function DashboardLayout({
     3: 'Sócio',
   };
 
+  // Seções da Sidebar exatamente como no original PHP
+  let sections: NavSection[] = [];
+
+  if (user.cargo === 0 || user.cargo === 2) {
+    // Admin / Direção (navbar_admin.php & admin_musico_socio/navbar_admin.php)
+    const direcaoItems = [
+      { label: 'Utilizadores', href: '/admin/utilizadores', iconName: 'users' },
+      { label: 'Aprovar inscrições', href: '/admin/ver-inscricoes', iconName: 'check' },
+      { label: 'Calendário (Ver)', href: '/admin/calendario', iconName: 'calendar' },
+      { label: 'Gerir Serviços', href: '/admin/gerir-servicos', iconName: 'calendar' },
+      { label: 'Presenças', href: '/admin/presencas', iconName: 'presencas' },
+      { label: 'Caderneta', href: '/admin/caderneta', iconName: 'caderneta' },
+      { label: 'Cotas', href: '/admin/cotas', iconName: 'cotas' },
+      { label: 'Backoffice', href: '/admin/backoffice', iconName: 'backoffice' },
+    ];
+
+    sections = [
+      {
+        items: [{ label: 'Home', href: '/admin', iconName: 'home' }],
+      },
+      {
+        heading: 'Direção',
+        items: direcaoItems,
+      },
+    ];
+
+    // Se for cargo 2 (Admin & Músico & Sócio), adiciona a aba Músico
+    if (user.cargo === 2) {
+      sections.push({
+        heading: 'Músico',
+        items: [
+          { label: 'Presenças (Músico)', href: '/musicos-socios/presencas', iconName: 'presencas' },
+          { label: 'Histórico de Presenças', href: '/musicos-socios/historico', iconName: 'history' },
+          { label: 'Caderneta (Músico)', href: '/musicos-socios/caderneta', iconName: 'caderneta' },
+        ],
+      });
+    }
+
+    sections.push(
+      {
+        heading: 'Sócio',
+        items: [
+          { label: 'Minhas Cotas', href: '/admin/minhas-cotas', iconName: 'cotas' },
+        ],
+      },
+      {
+        heading: 'Perfil',
+        items: [
+          { label: 'Perfil (Eu)', href: '/admin/conta', iconName: 'user' },
+        ],
+      }
+    );
+  } else if (user.cargo === 1) {
+    // Músico & Sócio (navbar_musicos.php)
+    sections = [
+      {
+        items: [{ label: 'Home', href: '/musicos-socios', iconName: 'home' }],
+      },
+      {
+        heading: 'Músico',
+        items: [
+          { label: 'Calendário', href: '/musicos-socios/calendario', iconName: 'calendar' },
+          { label: 'Presenças', href: '/musicos-socios/presencas', iconName: 'presencas' },
+          { label: 'Histórico de Presenças', href: '/musicos-socios/historico', iconName: 'history' },
+          { label: 'Caderneta', href: '/musicos-socios/caderneta', iconName: 'caderneta' },
+        ],
+      },
+      {
+        heading: 'Sócio',
+        items: [
+          { label: 'Cotas', href: '/musicos-socios/cotas', iconName: 'cotas' },
+        ],
+      },
+      {
+        heading: 'Perfil',
+        items: [
+          { label: 'Perfil (Eu)', href: '/musicos-socios/conta', iconName: 'user' },
+        ],
+      },
+    ];
+  } else {
+    // Sócio (navbar_socios.php)
+    sections = [
+      {
+        items: [{ label: 'Home', href: '/socios', iconName: 'home' }],
+      },
+      {
+        heading: 'Sócio',
+        items: [
+          { label: 'Calendário', href: '/socios/calendario', iconName: 'calendar' },
+          { label: 'Cotas', href: '/socios/cotas', iconName: 'cotas' },
+        ],
+      },
+      {
+        heading: 'Perfil',
+        items: [
+          { label: 'Perfil (Eu)', href: '/socios/conta', iconName: 'user' },
+        ],
+      },
+    ];
+  }
+
+  const isDark = theme === 'dark';
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-white flex flex-col md:flex-row">
-      {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-neutral-900 border-b border-neutral-800">
+    <div
+      className={`min-h-screen flex flex-col md:flex-row transition-colors duration-200 ${
+        isDark ? 'bg-neutral-950 text-white' : 'bg-neutral-100/70 text-neutral-900'
+      }`}
+    >
+      {/* Mobile Topbar */}
+      <div
+        className={`md:hidden flex items-center justify-between p-4 border-b ${
+          isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'
+        }`}
+      >
         <Link href="/" className="flex items-center gap-2 font-bold text-sm tracking-wider">
           <div className="relative w-7 h-7">
             <Image src="/assets/banda.png" alt="Logo" fill className="object-contain" priority />
           </div>
-          <span>BANDA DE COIMBRÕES</span>
+          <span className="font-extrabold text-red-600">BANDA DE COIMBRÕES</span>
         </Link>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 text-neutral-400 hover:text-white"
-        >
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-lg border transition ${
+              isDark
+                ? 'bg-neutral-800 border-neutral-700 text-amber-400 hover:bg-neutral-700'
+                : 'bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200'
+            }`}
+            title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className={`p-2 rounded-lg border ${
+              isDark
+                ? 'bg-neutral-800 border-neutral-700 text-neutral-200'
+                : 'bg-neutral-100 border-neutral-200 text-neutral-700'
+            }`}
+            aria-label="Menu"
+          >
+            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-neutral-900 border-r border-neutral-800 p-6 flex flex-col justify-between transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:static inset-y-0 left-0 z-40 w-64 p-5 flex flex-col justify-between border-r transform transition-all duration-300 ease-in-out overflow-y-auto ${
+          isDark
+            ? 'bg-neutral-900 border-neutral-800 text-white'
+            : 'bg-white border-neutral-200 text-neutral-800 shadow-sm'
+        } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
         <div className="space-y-6">
-          <Link href="/" className="hidden md:flex items-center gap-3 font-extrabold text-sm tracking-wider text-amber-400">
-            <div className="relative w-8 h-8">
-              <Image src="/assets/banda.png" alt="Logo" fill className="object-contain" priority />
-            </div>
-            <span>BANDA DE COIMBRÕES</span>
-          </Link>
-
-          {/* User Profile Card */}
-          <div className="p-3 bg-neutral-800/80 rounded-xl border border-neutral-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-bold text-sm">
-                {user.nome.charAt(0).toUpperCase()}
+          {/* Brand header */}
+          <div className="flex items-center justify-between pb-4 border-b border-neutral-200/60 dark:border-neutral-800">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="relative w-8 h-8 flex-shrink-0">
+                <Image src="/assets/banda.png" alt="Logo" fill className="object-contain" priority />
               </div>
-              <div className="overflow-hidden">
-                <p className="text-sm font-bold truncate text-white">{user.nome}</p>
-                <span className="inline-block px-2 py-0.5 bg-amber-500/10 text-amber-400 text-xs rounded font-medium">
-                  {roleLabels[user.cargo] || 'Utilizador'}
+              <div className="leading-tight">
+                <span className="block text-xs font-black tracking-wider text-red-600 uppercase">
+                  Banda de Coimbrões
                 </span>
+                <span className="text-[11px] font-semibold text-neutral-500">Área Reservada</span>
               </div>
+            </Link>
+
+            {/* Desktop Theme Toggle Icon */}
+            <button
+              onClick={toggleTheme}
+              className={`hidden md:flex p-1.5 rounded-lg border transition ${
+                isDark
+                  ? 'bg-neutral-800 border-neutral-700 text-amber-400 hover:bg-neutral-700'
+                  : 'bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200'
+              }`}
+              title={isDark ? 'Tema Claro (fundo branco)' : 'Tema Escuro'}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
+
+          {/* User Card */}
+          <div
+            className={`p-3 rounded-xl border flex items-center gap-3 ${
+              isDark
+                ? 'bg-neutral-800/80 border-neutral-700'
+                : 'bg-neutral-50 border-neutral-200 shadow-xs'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-full bg-red-600/15 text-red-600 border border-red-500/30 flex items-center justify-center font-bold text-sm">
+              {user.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="overflow-hidden min-w-0">
+              <p className="text-xs font-bold truncate leading-tight">{user.nome}</p>
+              <span className="inline-block mt-0.5 px-2 py-0.5 bg-red-600/10 text-red-600 text-[10px] font-bold rounded">
+                {roleLabels[user.cargo] || 'Utilizador'}
+              </span>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-neutral-300 hover:text-white hover:bg-neutral-800 transition"
-                >
-                  <Icon className="w-4 h-4 text-amber-400" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+          {/* Sections and Navigation links */}
+          <nav className="space-y-4">
+            {sections.map((sec, secIdx) => (
+              <div key={secIdx} className="space-y-1">
+                {sec.heading && (
+                  <h6 className="px-3 text-[10px] font-black uppercase tracking-wider text-neutral-400 pb-1">
+                    {sec.heading}
+                  </h6>
+                )}
+                {sec.items.map((item, itemIdx) => {
+                  const Icon = ICON_MAP[item.iconName] || Home;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={itemIdx}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
+                        isActive
+                          ? 'bg-red-600 text-white shadow-sm font-bold'
+                          : isDark
+                          ? 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+                          : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-red-600'}`} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-6 border-t border-neutral-800 space-y-2">
+        <div
+          className={`pt-4 border-t mt-6 space-y-2 ${
+            isDark ? 'border-neutral-800' : 'border-neutral-200'
+          }`}
+        >
           <Link
             href="/"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white transition"
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+              isDark ? 'text-neutral-400 hover:text-white' : 'text-neutral-500 hover:text-neutral-900'
+            }`}
           >
-            <span>Ver Website Público</span>
+            <span>← Ver Website Público</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-400 hover:bg-red-950/40 hover:text-red-300 transition"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-red-600 hover:bg-red-600/10 transition"
           >
             <LogOut className="w-4 h-4" />
             <span>Terminar Sessão</span>
@@ -144,8 +358,17 @@ export default function DashboardLayout({
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="hidden md:flex items-center justify-between px-8 py-5 border-b border-neutral-800 bg-neutral-900/40">
-          <h1 className="text-2xl font-bold tracking-tight text-white">{title}</h1>
+        <header
+          className={`hidden md:flex items-center justify-between px-8 py-5 border-b ${
+            isDark ? 'bg-neutral-900/60 border-neutral-800' : 'bg-white border-neutral-200 shadow-xs'
+          }`}
+        >
+          <h1 className="text-2xl font-black tracking-tight">{title}</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-neutral-500">
+              {roleLabels[user.cargo]} • {user.email}
+            </span>
+          </div>
         </header>
 
         <div className="p-4 sm:p-8 flex-1">{children}</div>
@@ -153,4 +376,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-

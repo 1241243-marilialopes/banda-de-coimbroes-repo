@@ -1,30 +1,20 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { query } from '@/lib/db';
-import DashboardLayout, { NavItem } from '@/components/DashboardLayout';
+import DashboardLayout from '@/components/DashboardLayout';
 import {
   Users,
   Calendar,
   Music,
   CreditCard,
-  Settings,
   FileCheck,
   ShieldAlert,
   ArrowUpRight,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
-
-const adminNav: NavItem[] = [
-  { label: 'Visão Geral', href: '/admin', icon: Users },
-  { label: 'Utilizadores & Sócios', href: '/admin/utilizadores', icon: Users },
-  { label: 'Quotas Mensais', href: '/admin/cotas', icon: CreditCard },
-  { label: 'Serviços & Ensaios', href: '/admin/servicos', icon: Calendar },
-  { label: 'Arquivo de Partituras', href: '/admin/partituras', icon: Music },
-  { label: 'Instrumentos', href: '/admin/instrumentos', icon: Settings },
-  { label: 'Backoffice do Website', href: '/admin/backoffice', icon: FileCheck },
-];
 
 export default async function AdminDashboardPage() {
   const user = await getCurrentUser();
@@ -49,133 +39,213 @@ export default async function AdminDashboardPage() {
     totalServicos = servicosCount[0]?.count || 0;
 
     proximosServicos = await query(
-      'SELECT id_servico, nome_servico, data_inicial, valor FROM tb_servicos ORDER BY data_inicial DESC LIMIT 5'
+      'SELECT id_servico, nome_servico, data_inicial, localizacao, valor FROM tb_servicos ORDER BY data_inicial DESC LIMIT 5'
     );
   } catch (err) {
     console.warn('Erro ao carregar estatísticas do admin:', err);
   }
 
   return (
-    <DashboardLayout user={user} title="Painel de Administração" navItems={adminNav}>
+    <DashboardLayout user={user} title="Painel de Administração">
       <div className="space-y-8">
-        {/* KPI Cards */}
+        {/* KPI Cards Clicáveis */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
-            <div className="flex items-center justify-between text-neutral-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Membros Registados</span>
-              <Users className="w-5 h-5 text-amber-500" />
+          {/* Card 1: Membros Registados -> /admin/utilizadores */}
+          <Link
+            href="/admin/utilizadores"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-500 transition-all duration-200 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-neutral-500 group-hover:text-red-600 transition">
+                <span className="text-xs font-bold uppercase tracking-wider">Membros Registados</span>
+                <Users className="w-5 h-5 text-red-600" />
+              </div>
+              <p className="text-3xl font-black text-neutral-900 mt-3 group-hover:text-red-600 transition">
+                {totalUsers}
+              </p>
+              <p className="text-xs text-neutral-500 mt-1">Músicos, sócios e direção</p>
             </div>
-            <p className="text-3xl font-black text-white mt-3">{totalUsers}</p>
-            <p className="text-xs text-neutral-500 mt-1">Músicos, sócios e direção</p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs font-bold text-red-600">
+              <span>Gerir Utilizadores</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
-            <div className="flex items-center justify-between text-neutral-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Inscrições Pendentes</span>
-              <FileCheck className="w-5 h-5 text-blue-500" />
+          {/* Card 2: Inscrições Pendentes -> /admin/ver-inscricoes */}
+          <Link
+            href="/admin/ver-inscricoes"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-500 transition-all duration-200 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-neutral-500 group-hover:text-blue-600 transition">
+                <span className="text-xs font-bold uppercase tracking-wider">Inscrições Pendentes</span>
+                <FileCheck className="w-5 h-5 text-blue-600" />
+              </div>
+              <p className="text-3xl font-black text-neutral-900 mt-3 group-hover:text-blue-600 transition">
+                {totalInscricoes}
+              </p>
+              <p className="text-xs text-neutral-500 mt-1">Candidaturas a aguardar validação</p>
             </div>
-            <p className="text-3xl font-black text-white mt-3">{totalInscricoes}</p>
-            <p className="text-xs text-neutral-500 mt-1">Candidaturas a aguardar validação</p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs font-bold text-blue-600">
+              <span>Aprovar Inscrições</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
-            <div className="flex items-center justify-between text-neutral-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Total de Serviços</span>
-              <Calendar className="w-5 h-5 text-emerald-500" />
+          {/* Card 3: Total de Serviços -> /admin/calendario */}
+          <Link
+            href="/admin/calendario"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-500 transition-all duration-200 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-neutral-500 group-hover:text-emerald-600 transition">
+                <span className="text-xs font-bold uppercase tracking-wider">Total de Serviços</span>
+                <Calendar className="w-5 h-5 text-emerald-600" />
+              </div>
+              <p className="text-3xl font-black text-neutral-900 mt-3 group-hover:text-emerald-600 transition">
+                {totalServicos}
+              </p>
+              <p className="text-xs text-neutral-500 mt-1">Ensaios, procissões e concertos</p>
             </div>
-            <p className="text-3xl font-black text-white mt-3">{totalServicos}</p>
-            <p className="text-xs text-neutral-500 mt-1">Ensaios, procissões e concertos</p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+              <span>Ver Calendário</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
-            <div className="flex items-center justify-between text-neutral-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Estado da BD</span>
-              <ShieldAlert className="w-5 h-5 text-purple-500" />
+          {/* Card 4: Estado da BD -> /admin/backoffice */}
+          <Link
+            href="/admin/backoffice"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-purple-500 transition-all duration-200 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-neutral-500 group-hover:text-purple-600 transition">
+                <span className="text-xs font-bold uppercase tracking-wider">Estado da BD</span>
+                <ShieldAlert className="w-5 h-5 text-purple-600" />
+              </div>
+              <p className="text-xl font-bold text-emerald-600 mt-3">MySQL Ativo</p>
+              <p className="text-xs text-neutral-500 mt-1">Tabelas e integridade preservadas</p>
             </div>
-            <p className="text-xl font-bold text-emerald-400 mt-3">MySQL Ativo</p>
-            <p className="text-xs text-neutral-500 mt-1">Tabelas e integridade preservadas</p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs font-bold text-purple-600">
+              <span>Gerir Backoffice</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
         </div>
 
-        {/* Quick Links Section */}
+        {/* Row 2: Main Cards Clicáveis */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center justify-between">
-              <span>Gestão de Quotas</span>
-              <CreditCard className="w-5 h-5 text-amber-500" />
-            </h3>
-            <p className="text-sm text-neutral-400">
-              Consulte e atualize a situação de pagamento das quotas mensais e anuais dos sócios da Sociedade Musical.
-            </p>
-            <Link
-              href="/admin/cotas"
-              className="inline-flex items-center gap-2 text-sm font-bold text-amber-400 hover:text-amber-300"
-            >
-              <span>Gerir Quotas</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </div>
+          {/* Card: Gestão de Quotas -> /admin/cotas */}
+          <Link
+            href="/admin/cotas"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-500 transition flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-neutral-900 group-hover:text-red-600 transition">
+                  Gestão de Quotas
+                </h3>
+                <div className="p-2.5 rounded-xl bg-red-50 text-red-600">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Consulte e atualize a situação de pagamento das quotas mensais e anuais dos sócios da Sociedade Musical.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-sm font-bold text-red-600">
+              <span>Abrir Mapa de Quotas</span>
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center justify-between">
-              <span>Presenças e Serviços</span>
-              <Calendar className="w-5 h-5 text-blue-500" />
-            </h3>
-            <p className="text-sm text-neutral-400">
-              Marque novos ensaios ou concertos, registe presenças dos músicos e controle os pagamentos por serviço.
-            </p>
-            <Link
-              href="/admin/servicos"
-              className="inline-flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300"
-            >
-              <span>Gerir Serviços</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </div>
+          {/* Card: Presenças e Serviços -> /admin/presencas */}
+          <Link
+            href="/admin/presencas"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-500 transition flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-neutral-900 group-hover:text-blue-600 transition">
+                  Presenças e Serviços
+                </h3>
+                <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                  <Calendar className="w-5 h-5" />
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Marque novos ensaios ou concertos, registe presenças dos músicos e controle as presenças por serviço.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-sm font-bold text-blue-600">
+              <span>Gerir Presenças</span>
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center justify-between">
-              <span>Arquivo de Partituras</span>
-              <Music className="w-5 h-5 text-purple-500" />
-            </h3>
-            <p className="text-sm text-neutral-400">
-              Carregue novas peças e partituras em formato PDF e atribua-as por instrumento musical para os músicos.
-            </p>
-            <Link
-              href="/admin/partituras"
-              className="inline-flex items-center gap-2 text-sm font-bold text-purple-400 hover:text-purple-300"
-            >
-              <span>Aceder ao Arquivo</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </div>
+          {/* Card: Arquivo de Partituras -> /admin/caderneta */}
+          <Link
+            href="/admin/caderneta"
+            className="group p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-lg hover:border-purple-500 transition flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-neutral-900 group-hover:text-purple-600 transition">
+                  Arquivo de Partituras
+                </h3>
+                <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+                  <Music className="w-5 h-5" />
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Carregue novas peças e partituras em formato PDF e atribua-as por instrumento musical para os músicos.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 text-sm font-bold text-purple-600">
+              <span>Aceder à Caderneta</span>
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </div>
+          </Link>
         </div>
 
         {/* Tabela de Serviços Recentes */}
-        <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
+        <div className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-white">Serviços e Atuações Recentes</h3>
-            <span className="text-xs text-neutral-400">Últimos registos na BD</span>
+            <div>
+              <h3 className="text-lg font-bold text-neutral-900">Serviços e Atuações Recentes</h3>
+              <p className="text-xs text-neutral-500 mt-0.5">Últimos eventos registados na base de dados</p>
+            </div>
+            <Link
+              href="/admin/calendario"
+              className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
+            >
+              <span>Ver no Calendário</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {proximosServicos.length === 0 ? (
             <p className="text-neutral-500 text-sm py-4">Nenhum serviço agendado no momento.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-neutral-300">
-                <thead className="bg-neutral-800/60 text-xs uppercase text-neutral-400 border-b border-neutral-700">
+              <table className="w-full text-left text-sm text-neutral-700">
+                <thead className="bg-neutral-50 text-xs uppercase text-neutral-500 border-b border-neutral-200">
                   <tr>
-                    <th className="py-3 px-4">Nome do Serviço</th>
-                    <th className="py-3 px-4">Data</th>
-                    <th className="py-3 px-4">Cachet / Valor</th>
+                    <th className="py-3 px-4 font-bold">Nome do Serviço</th>
+                    <th className="py-3 px-4 font-bold">Data</th>
+                    <th className="py-3 px-4 font-bold">Localização</th>
+                    <th className="py-3 px-4 font-bold">Cachet / Valor</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-800">
+                <tbody className="divide-y divide-neutral-100">
                   {proximosServicos.map((servico: any) => (
-                    <tr key={servico.id_servico} className="hover:bg-neutral-800/40">
-                      <td className="py-3 px-4 font-semibold text-white">{servico.nome_servico}</td>
-                      <td className="py-3 px-4 text-neutral-400">{servico.data_inicial || '—'}</td>
-                      <td className="py-3 px-4 text-amber-400 font-medium">
+                    <tr key={servico.id_servico} className="hover:bg-neutral-50/80 transition">
+                      <td className="py-3 px-4 font-semibold text-neutral-900">
+                        {servico.nome_servico}
+                      </td>
+                      <td className="py-3 px-4 text-neutral-600">{servico.data_inicial || '—'}</td>
+                      <td className="py-3 px-4 text-neutral-600">{servico.localizacao || '—'}</td>
+                      <td className="py-3 px-4 text-red-600 font-bold">
                         {servico.valor ? `${servico.valor} €` : '—'}
                       </td>
                     </tr>
@@ -189,4 +259,3 @@ export default async function AdminDashboardPage() {
     </DashboardLayout>
   );
 }
-
