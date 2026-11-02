@@ -40,11 +40,11 @@ export default function EsqueceuPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-neutral-800 border border-neutral-700 rounded-2xl shadow-2xl p-6 sm:p-8">
+    <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-6 sm:p-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition mb-6"
+          className="inline-flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar</span>
@@ -69,7 +69,7 @@ export default function EsqueceuPasswordPage() {
             </p>
             <Link
               href="/"
-              className="inline-block mt-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg transition text-sm"
+              className="inline-block mt-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 transition text-sm"
             >
               Voltar ao Início
             </Link>
@@ -96,7 +96,7 @@ export default function EsqueceuPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nome@exemplo.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
                 />
               </div>
             </div>
@@ -113,7 +113,7 @@ export default function EsqueceuPasswordPage() {
                   required
                   value={dataNascimento}
                   onChange={(e) => setDataNascimento(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition text-white"
+                  className="w-full pl-10 pr-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition text-white"
                 />
               </div>
             </div>
@@ -121,7 +121,7 @@ export default function EsqueceuPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-900 font-bold rounded-lg shadow transition flex items-center justify-center gap-2 mt-4"
+              className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 hover:shadow-red-600/40 transition flex items-center justify-center gap-2 mt-4"
             >
               {loading ? (
                 <>
@@ -138,4 +138,3 @@ export default function EsqueceuPasswordPage() {
     </div>
   );
 }
-

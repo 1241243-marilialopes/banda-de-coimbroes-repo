@@ -88,7 +88,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="exemplo@dominio.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition"
+                className="w-full pl-10 pr-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition"
               />
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition"
+                className="w-full pl-10 pr-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition"
               />
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-900 font-bold rounded-lg shadow transition mt-2"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 transition mt-2 active:scale-98"
           >
             {loading ? (
               <>
@@ -133,7 +133,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <Link
               href="/esqueceu-password"
               onClick={onClose}
-              className="text-amber-400 hover:underline font-medium"
+              className="text-red-400 hover:text-red-300 hover:underline font-semibold"
             >
               Recuperar
             </Link>
@@ -143,7 +143,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <Link
               href="/inscricao"
               onClick={onClose}
-              className="text-amber-400 hover:underline font-medium"
+              className="text-red-400 hover:text-red-300 hover:underline font-semibold"
             >
               Inscreva-se
             </Link>

@@ -1,18 +1,11 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { query } from '@/lib/db';
-import DashboardLayout, { NavItem } from '@/components/DashboardLayout';
-import { Music, Calendar, CreditCard, UserCheck, Download, AlertCircle } from 'lucide-react';
+import DashboardLayout from '@/components/DashboardLayout';
+import { Music, Calendar, CreditCard, Download, AlertCircle, ChevronRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
-
-const musicoNav: NavItem[] = [
-  { label: 'A Minha Área', href: '/musicos-socios', icon: UserCheck },
-  { label: 'Partituras do Instrumento', href: '/musicos-socios/partituras', icon: Music },
-  { label: 'Presenças & Serviços', href: '/musicos-socios/presencas', icon: Calendar },
-  { label: 'Estado de Quotas', href: '/musicos-socios/cotas', icon: CreditCard },
-];
 
 export default async function MusicoDashboardPage() {
   const user = await getCurrentUser();
@@ -51,44 +44,101 @@ export default async function MusicoDashboardPage() {
   }
 
   return (
-    <DashboardLayout user={user} title="Área do Músico & Sócio" navItems={musicoNav}>
-      <div className="space-y-8">
+    <DashboardLayout user={user} title="Área do Músico & Sócio">
+      <div className="space-y-6">
         {/* Banner do Músico */}
-        <div className="p-6 bg-gradient-to-r from-amber-600/20 via-neutral-900 to-neutral-900 border border-amber-500/30 rounded-2xl">
+        <div className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
+              <span className="text-xs font-black uppercase tracking-widest text-red-600">
                 Caderneta Digital
               </span>
-              <h2 className="text-2xl font-bold text-white mt-1">Bem-vindo, {user.nome}!</h2>
-              <p className="text-sm text-neutral-400 mt-1">
-                Instrumento ativo: <strong className="text-amber-400">{instrumentName}</strong>
+              <h2 className="text-2xl font-black text-neutral-900 mt-1">Bem-vindo, {user.nome}!</h2>
+              <p className="text-sm text-neutral-500 mt-1">
+                Instrumento ativo: <strong className="text-red-600 font-bold">{instrumentName}</strong>
               </p>
             </div>
-            <div className="px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-xl text-center">
-              <span className="text-xs text-neutral-400 block">Identificação</span>
-              <span className="text-base font-bold text-white">#{user.id}</span>
+            <div className="px-5 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
+              <span className="text-xs text-neutral-500 block">Identificação</span>
+              <span className="text-base font-black text-neutral-900">#{user.id}</span>
             </div>
           </div>
         </div>
 
+        {/* Quick Links */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            href="/musicos-socios/calendario"
+            className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-md hover:border-red-500 transition flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-neutral-900">Calendário</h4>
+                <p className="text-xs text-neutral-500">Ensaios e concertos</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-red-600" />
+          </Link>
+
+          <Link
+            href="/musicos-socios/caderneta"
+            className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-md hover:border-red-500 transition flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+                <Music className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-neutral-900">Caderneta</h4>
+                <p className="text-xs text-neutral-500">Partituras em PDF</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-red-600" />
+          </Link>
+
+          <Link
+            href="/musicos-socios/presencas"
+            className="p-5 bg-white border border-neutral-200 rounded-2xl shadow-xs hover:shadow-md hover:border-red-500 transition flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-neutral-900">Presenças</h4>
+                <p className="text-xs text-neutral-500">Marcar disponibilidade</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-red-600" />
+          </Link>
+        </div>
+
         {/* Partituras do Instrumento */}
-        <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
+        <div id="partituras" className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Music className="w-5 h-5 text-amber-500" />
+              <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                <Music className="w-5 h-5 text-red-600" />
                 <span>Partituras para {instrumentName}</span>
               </h3>
-              <p className="text-xs text-neutral-400 mt-0.5">
+              <p className="text-xs text-neutral-500 mt-0.5">
                 Aceda e transfira o material de estudo e ensaio
               </p>
             </div>
+            <Link
+              href="/musicos-socios/caderneta"
+              className="text-xs font-bold text-red-600 hover:underline"
+            >
+              Ver todas →
+            </Link>
           </div>
 
           {partituras.length === 0 ? (
             <div className="py-8 text-center text-neutral-500 text-sm space-y-2">
-              <AlertCircle className="w-8 h-8 mx-auto text-neutral-600" />
+              <AlertCircle className="w-8 h-8 mx-auto text-neutral-400" />
               <p>Ainda não foram atribuídas partituras ao seu naipe ou instrumento.</p>
             </div>
           ) : (
@@ -96,14 +146,16 @@ export default async function MusicoDashboardPage() {
               {partituras.map((p) => (
                 <div
                   key={p.id_partitura}
-                  className="p-4 bg-neutral-800/60 border border-neutral-700 rounded-xl flex items-center justify-between hover:border-amber-500/50 transition"
+                  className="p-4 bg-neutral-50 border border-neutral-200 rounded-xl flex items-center justify-between hover:border-red-500 transition"
                 >
                   <div className="overflow-hidden pr-3">
-                    <p className="font-bold text-sm text-white truncate">{p.nome || p.nome_ficheiro}</p>
-                    <span className="text-xs text-neutral-400">PDF de Partitura</span>
+                    <p className="font-bold text-sm text-neutral-900 truncate">
+                      {p.nome || p.nome_ficheiro}
+                    </p>
+                    <span className="text-xs text-neutral-500">PDF de Partitura</span>
                   </div>
                   <button
-                    className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg transition"
+                    className="p-2 bg-red-600/10 hover:bg-red-600/20 text-red-600 rounded-lg transition"
                     title="Transferir partitura"
                   >
                     <Download className="w-4 h-4" />
@@ -115,37 +167,43 @@ export default async function MusicoDashboardPage() {
         </div>
 
         {/* Serviços e Presenças */}
-        <div className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
+        <div id="servicos" className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-500" />
+            <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-red-600" />
               <span>Próximos Ensaios e Serviços</span>
             </h3>
+            <Link
+              href="/musicos-socios/presencas"
+              className="text-xs font-bold text-red-600 hover:underline"
+            >
+              Gerir presenças →
+            </Link>
           </div>
 
           {proximosServicos.length === 0 ? (
             <p className="text-neutral-500 text-sm py-4">Sem serviços agendados.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-neutral-300">
-                <thead className="bg-neutral-800/60 text-xs uppercase text-neutral-400 border-b border-neutral-700">
+              <table className="w-full text-left text-sm text-neutral-700">
+                <thead className="bg-neutral-50 text-xs uppercase font-extrabold text-neutral-500 border-b border-neutral-200">
                   <tr>
                     <th className="py-3 px-4">Evento</th>
                     <th className="py-3 px-4">Data</th>
                     <th className="py-3 px-4">Presença</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-800">
+                <tbody className="divide-y divide-neutral-100">
                   {proximosServicos.map((s) => (
-                    <tr key={s.id_servico} className="hover:bg-neutral-800/40">
-                      <td className="py-3 px-4 font-semibold text-white">{s.nome_servico}</td>
-                      <td className="py-3 px-4 text-neutral-400">{s.data_inicial || 'A definir'}</td>
+                    <tr key={s.id_servico} className="hover:bg-neutral-50/80 transition">
+                      <td className="py-3 px-4 font-semibold text-neutral-900">{s.nome_servico}</td>
+                      <td className="py-3 px-4 text-neutral-500">{s.data_inicial || 'A definir'}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`inline-block px-2.5 py-1 text-xs rounded-full font-bold ${
                             s.confirmado === 'Confirmada'
-                              ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                              : 'bg-amber-950 text-amber-400 border border-amber-800'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-neutral-100 text-neutral-600'
                           }`}
                         >
                           {s.confirmado || 'Não confirmada'}
@@ -162,4 +220,3 @@ export default async function MusicoDashboardPage() {
     </DashboardLayout>
   );
 }
-

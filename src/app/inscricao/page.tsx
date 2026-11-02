@@ -81,11 +81,11 @@ export default function InscricaoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-white py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center">
-      <div className="w-full max-w-2xl bg-neutral-800/80 border border-neutral-700/80 rounded-2xl shadow-2xl p-6 sm:p-10 backdrop-blur-md">
+    <div className="min-h-screen bg-neutral-950 text-white py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center">
+      <div className="w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-6 sm:p-10">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition mb-6"
+          className="inline-flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar ao Início</span>
@@ -111,7 +111,7 @@ export default function InscricaoPage() {
             </p>
             <Link
               href="/"
-              className="inline-block mt-4 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg shadow transition"
+              className="inline-block mt-4 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg shadow-red-900/30 transition"
             >
               Voltar à Página Principal
             </Link>
@@ -127,7 +127,7 @@ export default function InscricaoPage() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="nome">
-                Nome Completo <span className="text-amber-500">*</span>
+                Nome Completo <span className="text-red-500">*</span>
               </label>
               <input
                 id="nome"
@@ -135,14 +135,14 @@ export default function InscricaoPage() {
                 required
                 value={formData.nome}
                 onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+                className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="tele">
-                  Telemóvel <span className="text-amber-500">*</span>
+                  Telemóvel <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="tele"
@@ -150,13 +150,13 @@ export default function InscricaoPage() {
                   required
                   value={formData.tele}
                   onChange={(e) => setFormData({ ...formData, tele: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="email">
-                  Email <span className="text-amber-500">*</span>
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="email"
@@ -164,7 +164,7 @@ export default function InscricaoPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
                 />
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function InscricaoPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="cc">
-                  Cartão de Cidadão <span className="text-amber-500">*</span>
+                  Cartão de Cidadão <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="cc"
@@ -180,13 +180,13 @@ export default function InscricaoPage() {
                   required
                   value={formData.cc}
                   onChange={(e) => setFormData({ ...formData, cc: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="nif">
-                  NIF <span className="text-amber-500">*</span>
+                  NIF <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="nif"
@@ -194,7 +194,7 @@ export default function InscricaoPage() {
                   required
                   value={formData.nif}
                   onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition"
                 />
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function InscricaoPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="data">
-                  Data de Nascimento <span className="text-amber-500">*</span>
+                  Data de Nascimento <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="data"
@@ -210,19 +210,19 @@ export default function InscricaoPage() {
                   required
                   value={formData.data}
                   onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition text-white"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition text-white"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="genero">
-                  Género <span className="text-amber-500">*</span>
+                  Género <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="genero"
                   value={formData.genero}
                   onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition text-white"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition text-white"
                 >
                   <option value="1">Masculino</option>
                   <option value="2">Feminino</option>
@@ -232,14 +232,14 @@ export default function InscricaoPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-1" htmlFor="instrumento">
-                  Instrumento <span className="text-amber-500">*</span>
+                  Instrumento <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="instrumento"
                   required
                   value={formData.instrumento}
                   onChange={(e) => setFormData({ ...formData, instrumento: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg focus:border-amber-500 focus:outline-none transition text-white"
+                  className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition text-white"
                 >
                   <option value="">Selecione...</option>
                   {instrumentos.map((inst) => (
@@ -254,7 +254,7 @@ export default function InscricaoPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-900 font-extrabold rounded-lg shadow-lg hover:shadow-amber-500/20 transition flex items-center justify-center gap-2 mt-4"
+              className="w-full py-3.5 px-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-extrabold rounded-lg shadow-lg shadow-red-900/30 hover:shadow-red-600/40 transition flex items-center justify-center gap-2 mt-4"
             >
               {loading ? (
                 <>
@@ -274,4 +274,3 @@ export default function InscricaoPage() {
     </div>
   );
 }
-
