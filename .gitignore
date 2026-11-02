@@ -38,3 +38,10 @@ yarn-error.log*
 # Ficheiros temporários de upload/cache
 /temp/
 /tmp/
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+.env*.local
+*.tsbuildinfo

@@ -4,15 +4,15 @@ Plataforma Web institucional e sistema integrado de gestão associativa para a *
 
 ---
 
-## 📌 Funcionalidades Principais
+## Funcionalidades Principais
 
-### 🌐 Portal Público
+### Portal Público
 - **Apresentação Institucional:** Secções informativas sobre a história da banda ("Quem Somos"), Escola de Música, Órgãos Sociais ("Direção") e contactos.
 - **Inscrição Online:** Formulário de candidatura de novos membros/alunos com envio automático de e-mail de confirmação.
 - **Área Reservada (Login):** Autenticação segura com verificação de credenciais e redirecionamento de acordo com o perfil de utilizador.
 - **Recuperação de Password:** Envio de links temporários por e-mail para reposição ou primeira definição de palavra-passe.
 
-### 👥 Perfis e Áreas Reservadas
+### Perfis e Áreas Reservadas
 O sistema possui 4 níveis de privilégios (`cargo_id`):
 
 1. **Administrador (`cargo = 0`):**
@@ -40,7 +40,7 @@ O sistema possui 4 níveis de privilégios (`cargo_id`):
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Backend:** PHP (com extensões `mysqli` e `session`)
 - **Base de Dados:** MySQL / MariaDB
@@ -55,7 +55,7 @@ O sistema possui 4 níveis de privilégios (`cargo_id`):
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 banda-de-coimbroes-repo/
@@ -80,7 +80,41 @@ banda-de-coimbroes-repo/
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## ⚡ Versão Moderna em TypeScript (Next.js)
+
+Este branch (`migration-nextjs`) contém a migração completa da plataforma para **TypeScript Fullstack com Next.js (App Router)** e **Tailwind CSS**, mantendo a compatibilidade total com a base de dados MySQL existente e com todos os ficheiros estáticos (partituras, fotos, documentos) do projeto original.
+
+### Vantagens desta versão:
+- **I/O Não Bloqueante & Alta Performance:** Conexões MySQL otimizadas por pool assíncrono (`mysql2/promise`).
+- **Autenticação Segura & Compatível:** Verificação de senhas em Bcrypt (`$2y$` e `$2a$`), compatível tanto com os utilizadores antigos gerados por PHP como com novos registos.
+- **Sessões Stateless (JWT HttpOnly):** Sessões protegidas sem overhead no servidor.
+- **Emails Transacionais Assíncronos:** Envio de confirmação de inscrição e reposição de password via Nodemailer SMTP.
+
+### Como Executar a Versão TypeScript:
+1. **Instalar dependências:**
+   ```bash
+   npm install
+   ```
+2. **Configurar variáveis de ambiente:**
+   Copiar o `.env.example` para `.env.local` (já configurado por omissão para a BD local `bd_pap` do MySQL/XAMPP):
+   ```bash
+   cp .env.example .env.local
+   ```
+3. **Iniciar o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+   Aceder no navegador a: [http://localhost:3000](http://localhost:3000)
+
+4. **Compilar para produção:**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+---
+
+## Como Executar a Versão Clássica em PHP (Apache / XAMPP)
 
 ### Pré-requisitos
 - Um ambiente com servidor Apache e MySQL instalado (ex.: [XAMPP](https://www.apachefriends.org/), [WampServer](https://www.wampserver.com/) ou [MAMP](https://www.mamp.info/)).
@@ -107,14 +141,14 @@ banda-de-coimbroes-repo/
 
 ---
 
-## 🔒 Boas Práticas e Segurança
+## Boas Práticas e Segurança
 
 - **Credenciais e Passwords:** Recomenda-se não partilhar palavras-passe de servidores de produção ou senhas de aplicação SMTP em repositórios públicos.
 - **Sessões:** A plataforma utiliza sessões PHP com regeneração de identificador (`session_regenerate_id()`) e hashing de palavras-passe com `password_hash()` (algoritmo padrão BCRYPT).
 
 ---
 
-## 📄 Licença e Créditos
+## Licença e Créditos
 
 Desenvolvido para a **Sociedade Musical 1º de Agosto (Banda de Coimbrões)**.  
 Todos os direitos reservados à instituição.
