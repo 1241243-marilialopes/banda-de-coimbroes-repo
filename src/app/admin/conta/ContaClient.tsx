@@ -56,6 +56,39 @@ export default function ContaClient({ initialUser, instrumentos, generos }: Cont
     setErrorMessage('');
     setSuccessMessage('');
 
+    if (!formData.nome.trim()) {
+      setErrorMessage('O nome de utilizador é obrigatório.');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setErrorMessage('O email é obrigatório.');
+      return;
+    }
+
+    if (formData.data) {
+      const dNasc = new Date(formData.data);
+      if (dNasc >= new Date()) {
+        setErrorMessage('Por favor, insira uma data de nascimento válida (anterior à data atual).');
+        return;
+      }
+    }
+
+    if (formData.tele && !/^\d{9}$/.test(formData.tele.trim())) {
+      setErrorMessage('Por favor, insira um número de telefone válido com 9 dígitos.');
+      return;
+    }
+
+    if (formData.cc && !/^\d{8}$/.test(formData.cc.trim())) {
+      setErrorMessage('Por favor, insira um número de Cartão de Cidadão válido com 8 dígitos.');
+      return;
+    }
+
+    if (formData.nif && !/^\d{9}$/.test(formData.nif.trim())) {
+      setErrorMessage('Por favor, insira um número de Identificação Fiscal válido com 9 dígitos.');
+      return;
+    }
+
     if (formData.senha && formData.senha.length < 6) {
       setErrorMessage('A nova palavra-passe deve ter pelo menos 6 caracteres.');
       return;

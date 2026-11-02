@@ -10,10 +10,9 @@ interface InstrumentOption {
 
 interface PartituraRow {
   id_partitura: number;
-  nome_obra?: string;
-  nome_ficheiro?: string;
+  nome_partitura: string;
   instrumento_id: number;
-  nome_instrumento?: string;
+  nome_instrumento: string;
 }
 
 export default function CadernetaClient({
@@ -32,7 +31,7 @@ export default function CadernetaClient({
     }
     if (search.trim()) {
       const q = search.toLowerCase();
-      const title = (p.nome_obra || p.nome_ficheiro || '').toLowerCase();
+      const title = (p.nome_partitura || '').toLowerCase();
       const inst = (p.nome_instrumento || '').toLowerCase();
       return title.includes(q) || inst.includes(q);
     }
@@ -70,71 +69,78 @@ export default function CadernetaClient({
           </div>
 
           {/* Pesquisa */}
-          <div className="relative w-full sm:w-60">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
+          <div className="relative">
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              placeholder="Pesquisar peça..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Pesquisar obra..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs sm:text-sm focus:border-red-500 focus:outline-none transition shadow-2xs"
+              className="pl-9 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs sm:text-sm focus:border-red-500 focus:outline-none transition shadow-2xs"
             />
           </div>
         </div>
       </div>
 
-      <div className="bg-white border border-neutral-200 rounded-2xl shadow-xs overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="p-12 text-center text-neutral-500 space-y-2">
-            <BookOpen className="w-12 h-12 mx-auto text-neutral-400" />
-            <p className="font-bold text-neutral-800">Nenhuma partitura encontrada</p>
-            <p className="text-xs text-neutral-500">
-              Não existem partituras cadastradas para o instrumento selecionado.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-100">
-            {filtered.map((p) => (
-              <div
-                key={p.id_partitura}
-                className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-neutral-50/80 transition"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="p-3 rounded-xl bg-purple-50 text-purple-600 flex-shrink-0">
-                    <Music className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-sm sm:text-base text-neutral-900 truncate">
-                      {p.nome_obra || p.nome_ficheiro}
-                    </h4>
-                    <div className="flex items-center gap-3 text-xs text-neutral-500 mt-0.5">
-                      <span className="font-semibold text-neutral-700">
-                        Naipe: {p.nome_instrumento || 'Geral'}
-                      </span>
-                      {p.nome_ficheiro && (
-                        <span className="text-neutral-400 hidden sm:inline truncate">
-                          • {p.nome_ficheiro}
-                        </span>
-                      )}
-                    </div>
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center text-neutral-500 space-y-2">
+          <BookOpen className="w-12 h-12 mx-auto text-neutral-400" />
+          <p className="font-bold text-neutral-800">Nenhuma partitura encontrada</p>
+          <p className="text-xs text-neutral-500">
+            {search || selectedInst !== 'all'
+              ? 'Tente ajustar os filtros ou termo de pesquisa.'
+              : 'Não existem partituras cadastradas para este filtro.'}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filtered.map((p) => (
+            <div
+              key={p.id_partitura}
+              className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between"
+            >
+              <div>
+                <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden flex items-center justify-center border-b border-neutral-100">
+                  <img
+                    src={`/api/partituras/imagem/${p.id_partitura}`}
+                    alt={p.nome_partitura}
+                    className="w-full h-full object-cover transition duration-300 hover:scale-105"
+                    onError={(e) => {
+                      // Fallback if image blob is empty
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center -z-10 text-neutral-300">
+                    <Music className="w-16 h-16" />
                   </div>
                 </div>
 
+                <div className="p-4 space-y-1 text-center">
+                  <h4 className="font-bold text-base text-neutral-900 line-clamp-1">
+                    {p.nome_partitura}
+                  </h4>
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700">
+                    {p.nome_instrumento}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 pt-0">
                 <a
                   href={`/api/partituras/download/${p.id_partitura}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-xs flex-shrink-0"
+                  download={`${p.nome_partitura}.pdf`}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-xs"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Descarregar PDF</span>
+                  <span>Download PDF</span>
                 </a>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-

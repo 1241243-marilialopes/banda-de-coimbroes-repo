@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Home,
   Users,
@@ -14,22 +14,27 @@ import {
   CreditCard,
   FileEdit,
   User,
+  History,
   LogOut,
-  Sun,
-  Moon,
   Menu,
   X,
-  History,
+  ExternalLink,
   Music,
+  Sun,
+  Moon,
+  ChevronDown,
 } from 'lucide-react';
 
-export interface NavSection {
+interface NavItem {
+  label: string;
+  href?: string;
+  iconName: string;
+  subItems?: { label: string; href: string }[];
+}
+
+interface NavSection {
   heading?: string;
-  items: {
-    label: string;
-    href: string;
-    iconName: string;
-  }[];
+  items: NavItem[];
 }
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -67,6 +72,10 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  const [calendarExpanded, setCalendarExpanded] = useState(
+    pathname.startsWith('/admin/calendario') || pathname.startsWith('/admin/gerir-servicos')
+  );
+
   useEffect(() => {
     const saved = localStorage.getItem('admin_theme');
     if (saved === 'dark' || saved === 'light') {
@@ -87,9 +96,9 @@ export default function DashboardLayout({
   }
 
   const roleLabels: Record<number, string> = {
-    0: 'Administrador',
-    1: 'Músico & Sócio',
-    2: 'Admin & Músico',
+    0: 'Admin, Sócio',
+    1: 'Músico, Sócio',
+    2: 'Admin, Músico, Sócio',
     3: 'Sócio',
   };
 
@@ -98,11 +107,17 @@ export default function DashboardLayout({
 
   if (user.cargo === 0 || user.cargo === 2) {
     // Admin / Direção (navbar_admin.php & admin_musico_socio/navbar_admin.php)
-    const direcaoItems = [
+    const direcaoItems: NavItem[] = [
       { label: 'Utilizadores', href: '/admin/utilizadores', iconName: 'users' },
       { label: 'Aprovar inscrições', href: '/admin/ver-inscricoes', iconName: 'check' },
-      { label: 'Calendário (Ver)', href: '/admin/calendario', iconName: 'calendar' },
-      { label: 'Gerir Serviços', href: '/admin/gerir-servicos', iconName: 'calendar' },
+      {
+        label: 'Calendário',
+        iconName: 'calendar',
+        subItems: [
+          { label: 'Ver', href: '/admin/calendario' },
+          { label: 'Gerir', href: '/admin/gerir-servicos' },
+        ],
+      },
       { label: 'Presenças', href: '/admin/presencas', iconName: 'presencas' },
       { label: 'Caderneta', href: '/admin/caderneta', iconName: 'caderneta' },
       { label: 'Cotas', href: '/admin/cotas', iconName: 'cotas' },
@@ -124,9 +139,9 @@ export default function DashboardLayout({
       sections.push({
         heading: 'Músico',
         items: [
-          { label: 'Presenças (Músico)', href: '/musicos-socios/presencas', iconName: 'presencas' },
+          { label: 'Presenças', href: '/musicos-socios/presencas', iconName: 'presencas' },
           { label: 'Histórico de Presenças', href: '/musicos-socios/historico', iconName: 'history' },
-          { label: 'Caderneta (Músico)', href: '/musicos-socios/caderneta', iconName: 'caderneta' },
+          { label: 'Caderneta', href: '/musicos-socios/caderneta', iconName: 'caderneta' },
         ],
       });
     }
@@ -135,13 +150,13 @@ export default function DashboardLayout({
       {
         heading: 'Sócio',
         items: [
-          { label: 'Minhas Cotas', href: '/admin/minhas-cotas', iconName: 'cotas' },
+          { label: 'Cotas', href: '/admin/minhas-cotas', iconName: 'cotas' },
         ],
       },
       {
         heading: 'Perfil',
         items: [
-          { label: 'Perfil (Eu)', href: '/admin/conta', iconName: 'user' },
+          { label: 'Eu', href: '/admin/conta', iconName: 'user' },
         ],
       }
     );
@@ -169,7 +184,7 @@ export default function DashboardLayout({
       {
         heading: 'Perfil',
         items: [
-          { label: 'Perfil (Eu)', href: '/musicos-socios/conta', iconName: 'user' },
+          { label: 'Eu', href: '/musicos-socios/conta', iconName: 'user' },
         ],
       },
     ];
@@ -189,7 +204,7 @@ export default function DashboardLayout({
       {
         heading: 'Perfil',
         items: [
-          { label: 'Perfil (Eu)', href: '/socios/conta', iconName: 'user' },
+          { label: 'Eu', href: '/socios/conta', iconName: 'user' },
         ],
       },
     ];
@@ -199,34 +214,37 @@ export default function DashboardLayout({
 
   return (
     <div
-      className={`min-h-screen flex flex-col md:flex-row transition-colors duration-200 ${
-        isDark ? 'bg-neutral-950 text-white' : 'bg-neutral-100/70 text-neutral-900'
+      className={`min-h-screen flex flex-col md:flex-row transition-colors duration-200 font-sans ${
+        isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-neutral-50 text-neutral-900'
       }`}
     >
-      {/* Mobile Topbar */}
+      {/* Mobile top bar */}
       <div
         className={`md:hidden flex items-center justify-between p-4 border-b ${
           isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'
         }`}
       >
-        <Link href="/" className="flex items-center gap-2 font-bold text-sm tracking-wider">
-          <div className="relative w-7 h-7">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="relative w-8 h-8 flex-shrink-0">
             <Image src="/assets/banda.png" alt="Logo" fill className="object-contain" priority />
           </div>
-          <span className="font-extrabold text-red-600">BANDA DE COIMBRÕES</span>
+          <span className="font-bold text-sm tracking-tight text-red-600">Banda de Coimbrões</span>
         </Link>
+
         <div className="flex items-center gap-2">
+          {/* Mobile Theme Toggle Icon */}
           <button
             onClick={toggleTheme}
             className={`p-2 rounded-lg border transition ${
               isDark
-                ? 'bg-neutral-800 border-neutral-700 text-amber-400 hover:bg-neutral-700'
-                : 'bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200'
+                ? 'bg-neutral-800 border-neutral-700 text-amber-400'
+                : 'bg-neutral-100 border-neutral-200 text-neutral-600'
             }`}
             title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
+
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className={`p-2 rounded-lg border ${
@@ -308,11 +326,75 @@ export default function DashboardLayout({
                 )}
                 {sec.items.map((item, itemIdx) => {
                   const Icon = ICON_MAP[item.iconName] || Home;
+
+                  // Se o item tiver sub-itens (ex.: Calendário -> Ver / Gerir)
+                  if (item.subItems) {
+                    const isSubActive = item.subItems.some((s) => pathname.startsWith(s.href));
+                    return (
+                      <div key={itemIdx} className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => setCalendarExpanded(!calendarExpanded)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
+                            isSubActive
+                              ? isDark
+                                ? 'text-white bg-neutral-800'
+                                : 'text-neutral-900 bg-neutral-100 font-bold'
+                              : isDark
+                              ? 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+                              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className={`w-4 h-4 ${isSubActive ? 'text-red-600' : 'text-red-600'}`} />
+                            <span>{item.label}</span>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${
+                              calendarExpanded ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </button>
+
+                        {calendarExpanded && (
+                          <div
+                            className={`pl-8 pr-2 py-1 space-y-1 border-l-2 ml-5 ${
+                              isDark ? 'border-neutral-700' : 'border-neutral-200'
+                            }`}
+                          >
+                            <span className="block px-2 text-[10px] font-black uppercase tracking-wider text-neutral-400 pb-1">
+                              Calendário:
+                            </span>
+                            {item.subItems.map((sub, subIdx) => {
+                              const isChildActive = pathname === sub.href;
+                              return (
+                                <Link
+                                  key={subIdx}
+                                  href={sub.href}
+                                  onClick={() => setSidebarOpen(false)}
+                                  className={`block px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                    isChildActive
+                                      ? 'bg-red-600 text-white font-bold'
+                                      : isDark
+                                      ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+                                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                                  }`}
+                                >
+                                  {sub.label}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       key={itemIdx}
-                      href={item.href}
+                      href={item.href || '#'}
                       onClick={() => setSidebarOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
                         isActive
@@ -332,23 +414,26 @@ export default function DashboardLayout({
           </nav>
         </div>
 
-        {/* Footer Actions */}
-        <div
-          className={`pt-4 border-t mt-6 space-y-2 ${
-            isDark ? 'border-neutral-800' : 'border-neutral-200'
-          }`}
-        >
+        {/* Footer actions */}
+        <div className="pt-6 border-t border-neutral-200/60 dark:border-neutral-800 space-y-2">
           <Link
             href="/"
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-              isDark ? 'text-neutral-400 hover:text-white' : 'text-neutral-500 hover:text-neutral-900'
+            className={`flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition ${
+              isDark
+                ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+                : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
             }`}
           >
-            <span>← Ver Website Público</span>
+            <ExternalLink className="w-4 h-4" />
+            <span>Ver Website Público</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-red-600 hover:bg-red-600/10 transition"
+            className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition ${
+              isDark
+                ? 'text-red-400 hover:bg-red-950/40 hover:text-red-300'
+                : 'text-red-600 hover:bg-red-50'
+            }`}
           >
             <LogOut className="w-4 h-4" />
             <span>Terminar Sessão</span>
@@ -357,22 +442,22 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <header
           className={`hidden md:flex items-center justify-between px-8 py-5 border-b ${
-            isDark ? 'bg-neutral-900/60 border-neutral-800' : 'bg-white border-neutral-200 shadow-xs'
+            isDark ? 'bg-neutral-900/60 border-neutral-800' : 'bg-white border-neutral-200'
           }`}
         >
-          <h1 className="text-2xl font-black tracking-tight">{title}</h1>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-neutral-500">
-              {roleLabels[user.cargo]} • {user.email}
-            </span>
+          <h1 className="text-xl font-extrabold tracking-tight">{title}</h1>
+          <div className="flex items-center gap-3 text-xs text-neutral-500 font-medium">
+            <span>{roleLabels[user.cargo] || 'Membro'}</span>
+            <span>•</span>
+            <span>{user.email}</span>
           </div>
         </header>
 
-        <div className="p-4 sm:p-8 flex-1">{children}</div>
-      </main>
+        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
+      </div>
     </div>
   );
 }

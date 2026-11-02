@@ -13,17 +13,21 @@ export default async function SocioCotasPage() {
     redirect('/');
   }
 
+  const currentYear = new Date().getFullYear();
+  const minYear = currentYear - 2;
+
   let quotas: any[] = [];
   try {
+    // Apenas ano corrente e 2 anteriores (não o próximo)
     quotas = await query(
       `SELECT c.ano, a.ano as ano_real, c.janeiro, c.fevereiro, c.marco, c.abril, 
               c.maio, c.junho, c.julho, c.agosto, c.setembro, c.outubro, 
               c.novembro, c.dezembro, c.ano_completo 
        FROM tb_cota_mes c
-       LEFT JOIN tb_ano a ON c.ano = a.id_ano
-       WHERE c.socio_id = ? 
-       ORDER BY a.ano DESC, c.id_pagamento DESC`,
-      [user.id]
+       INNER JOIN tb_ano a ON c.ano = a.id_ano
+       WHERE c.socio_id = ? AND a.ano <= ? AND a.ano >= ?
+       ORDER BY a.ano DESC`,
+      [user.id, currentYear, minYear]
     );
   } catch (err) {
     console.warn('Erro ao carregar quotas:', err);
@@ -50,14 +54,14 @@ export default async function SocioCotasPage() {
         <div>
           <h2 className="text-xl font-bold text-neutral-900">Estado de Quotas Mensais</h2>
           <p className="text-sm text-neutral-500">
-            Registo de pagamento das quotas da Sociedade Musical 1º de Agosto
+            Registo de pagamento das quotas (Ano {currentYear} e 2 anos anteriores)
           </p>
         </div>
 
         {quotas.length === 0 ? (
           <div className="p-8 bg-white border border-neutral-200 rounded-2xl shadow-xs text-center text-neutral-500">
             <CreditCard className="w-10 h-10 mx-auto text-neutral-400 mb-2" />
-            <p className="font-bold">Ainda não constam registos de quotas para este sócio.</p>
+            <p className="font-bold">Ainda não constam registos de quotas para este período.</p>
           </div>
         ) : (
           quotas.map((q, idx) => {

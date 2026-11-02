@@ -47,6 +47,14 @@ const MONTH_NAMES = [
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
+function formatModalDate(val?: string) {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return val;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export default function ServiceCalendar({ events, isAdmin = false }: ServiceCalendarProps) {
   const today = new Date();
 
@@ -392,74 +400,37 @@ export default function ServiceCalendar({ events, isAdmin = false }: ServiceCale
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-4 h-4 rounded-full flex-shrink-0"
-                style={{ backgroundColor: selectedEvent.color || '#dc2626' }}
-              ></div>
-              <h3 className="text-xl font-bold text-neutral-900">
-                {selectedEvent.nome_servico}
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 mb-6">
+              <h3 className="text-xl font-medium text-neutral-900">
+                Detalhes do Serviço
               </h3>
             </div>
 
-            <div className="space-y-4 text-sm divide-y divide-neutral-100 pt-2">
-              <div className="flex items-start gap-3 pt-2">
-                <Clock className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="block text-xs font-bold uppercase text-neutral-400">
-                    Data e Horário
-                  </span>
-                  <p className="font-semibold text-neutral-800">
-                    Início: {selectedEvent.data_inicial || '—'}
-                  </p>
-                  {selectedEvent.data_final && (
-                    <p className="text-neutral-600 text-xs mt-0.5">
-                      Fim: {selectedEvent.data_final}
-                    </p>
-                  )}
-                </div>
-              </div>
+            <dl className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 text-sm">
+              <dt className="text-neutral-600 font-normal">Descrição e localização</dt>
+              <dd className="sm:col-span-2 text-neutral-900 font-normal">
+                {selectedEvent.nome_servico} {selectedEvent.localizacao ? `- ${selectedEvent.localizacao}` : ''}
+              </dd>
 
-              {selectedEvent.localizacao && (
-                <div className="flex items-start gap-3 pt-3">
-                  <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <span className="block text-xs font-bold uppercase text-neutral-400">
-                      Localização
-                    </span>
-                    <p className="font-semibold text-neutral-800">{selectedEvent.localizacao}</p>
-                  </div>
-                </div>
-              )}
+              <dt className="text-neutral-600 font-normal">Início do evento</dt>
+              <dd className="sm:col-span-2 text-neutral-900 font-normal">
+                {formatModalDate(selectedEvent.data_inicial)}
+              </dd>
+
+              <dt className="text-neutral-600 font-normal">Fim do evento</dt>
+              <dd className="sm:col-span-2 text-neutral-900 font-normal">
+                {formatModalDate(selectedEvent.data_final || selectedEvent.data_inicial)}
+              </dd>
 
               {selectedEvent.descricao_servico && (
-                <div className="flex items-start gap-3 pt-3">
-                  <FileText className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <span className="block text-xs font-bold uppercase text-neutral-400">
-                      Descrição
-                    </span>
-                    <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">
-                      {selectedEvent.descricao_servico}
-                    </p>
-                  </div>
-                </div>
+                <>
+                  <dt className="text-neutral-600 font-normal">Observações</dt>
+                  <dd className="sm:col-span-2 text-neutral-700 whitespace-pre-wrap">
+                    {selectedEvent.descricao_servico}
+                  </dd>
+                </>
               )}
-
-              {isAdmin && selectedEvent.valor && (
-                <div className="flex items-start gap-3 pt-3">
-                  <CreditCard className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <span className="block text-xs font-bold uppercase text-neutral-400">
-                      Cachet / Valor
-                    </span>
-                    <p className="font-bold text-emerald-600 text-base">
-                      {selectedEvent.valor} €
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+            </dl>
 
             <div className="mt-8 pt-4 border-t border-neutral-100 text-right">
               <button

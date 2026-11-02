@@ -15,6 +15,8 @@ export default async function AdminUtilizadoresPage() {
 
   let users: any[] = [];
   let instrumentos: any[] = [];
+  let cargos: any[] = [];
+  let generos: any[] = [];
 
   try {
     const rawUsers: any = await query(
@@ -44,13 +46,34 @@ export default async function AdminUtilizadoresPage() {
       id: i.id_instrumento,
       label: i.nome_instrumento,
     }));
+
+    const rawCargos: any = await query(
+      'SELECT id_cargo, nome_cargo FROM tb_cargo ORDER BY id_cargo ASC'
+    );
+    cargos = rawCargos.map((c: any) => ({
+      id: c.id_cargo,
+      label: c.nome_cargo,
+    }));
+
+    const rawGeneros: any = await query(
+      'SELECT id_genero, genero FROM tb_genero ORDER BY id_genero ASC'
+    );
+    generos = rawGeneros.map((g: any) => ({
+      id: g.id_genero,
+      label: g.genero,
+    }));
   } catch (err) {
     console.warn('Erro ao carregar utilizadores:', err);
   }
 
   return (
     <DashboardLayout user={user} title="Utilizadores & Sócios">
-      <UtilizadoresClient users={users} instrumentos={instrumentos} />
+      <UtilizadoresClient
+        users={users}
+        instrumentos={instrumentos}
+        cargos={cargos}
+        generos={generos}
+      />
     </DashboardLayout>
   );
 }

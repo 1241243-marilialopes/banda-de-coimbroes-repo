@@ -51,8 +51,11 @@ export default function CotasClient({
   anos: AnoOption[];
   initialCotas: CotaMemberRow[];
 }) {
+  const currentYear = new Date().getFullYear();
+  const defaultAno = anos.find((a) => Number(a.ano) === currentYear) || (anos.length > 0 ? anos[0] : null);
+
   const [selectedAnoId, setSelectedAnoId] = useState<number>(
-    anos.length > 0 ? anos[anos.length - 1].id_ano : 1
+    defaultAno ? defaultAno.id_ano : 1
   );
   const [cotas, setCotas] = useState<CotaMemberRow[]>(initialCotas);
   const [search, setSearch] = useState('');

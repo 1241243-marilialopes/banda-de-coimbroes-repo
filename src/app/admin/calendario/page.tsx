@@ -53,11 +53,11 @@ export default async function AdminCalendarioPage() {
             </p>
           </div>
           <Link
-            href="/admin/gerir-servicos"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition text-sm"
+            href="/admin/gerir-servicos?novo=true"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-xs transition text-sm"
           >
             <Plus className="w-4 h-4" />
-            <span>Gerir / Criar Serviço</span>
+            <span>Criar Serviço</span>
           </Link>
         </div>
 

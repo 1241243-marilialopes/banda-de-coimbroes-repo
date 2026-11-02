@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query, queryOne } from '@/lib/db';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Music, Download, BookOpen } from 'lucide-react';
+import MusicoCadernetaClient from './MusicoCadernetaClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,84 +14,40 @@ export default async function MusicoCadernetaPage() {
   }
 
   let partituras: any[] = [];
-  let instrumentName = 'Geral';
+  let instrumentName = 'Instrumento Geral';
 
   try {
-    if (user.instrumento) {
-      const inst: any = await query(
-        'SELECT nome_instrumento FROM tb_instrumentos WHERE id_instrumento = ?',
-        [user.instrumento]
-      );
-      if (inst.length > 0) instrumentName = inst[0].nome_instrumento;
+    // Obter o instrumento atual do utilizador da base de dados
+    const dbUser: any = await queryOne(
+      `SELECT u.instrumento, i.nome_instrumento 
+       FROM tb_utilizadores u
+       LEFT JOIN tb_instrumentos i ON u.instrumento = i.id_instrumento
+       WHERE u.id_utilizador = ?`,
+      [user.id]
+    );
 
-      partituras = await query(
-        `SELECT p.id_partitura, np.nome_partitura as nome_obra, p.nome_ficheiro 
-         FROM tb_partituras p
-         LEFT JOIN tb_nome_partituras np ON p.nome = np.id_nome
-         WHERE p.instrumento = ? 
-         ORDER BY np.nome_partitura ASC`,
-        [user.instrumento]
-      );
-    }
+    const instrumentoId = dbUser?.instrumento || user.instrumento || 1;
+    instrumentName = dbUser?.nome_instrumento || 'Geral';
+
+    partituras = (await query(
+      `SELECT p.id_partitura, np.nome_partitura, p.instrumento as instrumento_id, i.nome_instrumento
+       FROM tb_partituras p
+       INNER JOIN tb_nome_partituras np ON p.nome = np.id_nome_partitura
+       INNER JOIN tb_instrumentos i ON p.instrumento = i.id_instrumento
+       WHERE p.instrumento = ?
+       ORDER BY np.nome_partitura ASC`,
+      [instrumentoId]
+    )) as any[];
   } catch (err) {
-    console.warn('Erro ao carregar caderneta:', err);
+    console.warn('Erro ao carregar caderneta do músico:', err);
   }
 
   return (
     <DashboardLayout user={user} title={`Caderneta de Partituras (${instrumentName})`}>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-bold text-neutral-900">Partituras Atribuídas</h2>
-          <p className="text-sm text-neutral-500">
-            Material de ensaio e estudo musical para {instrumentName}
-          </p>
-        </div>
-
-        <div className="bg-white border border-neutral-200 rounded-2xl shadow-xs overflow-hidden">
-          {partituras.length === 0 ? (
-            <div className="p-12 text-center text-neutral-500 space-y-2">
-              <BookOpen className="w-12 h-12 mx-auto text-neutral-400" />
-              <p className="font-bold text-neutral-800">Sem partituras atribuídas</p>
-              <p className="text-xs text-neutral-500">
-                Ainda não foram associadas partituras ao seu instrumento.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-neutral-100">
-              {partituras.map((p) => (
-                <div
-                  key={p.id_partitura}
-                  className="p-4 flex items-center justify-between hover:bg-neutral-50/80 transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
-                      <Music className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-neutral-900">
-                        {p.nome_obra || p.nome_ficheiro}
-                      </h4>
-                      <span className="text-xs text-neutral-500">
-                        {p.nome_ficheiro || 'Ficheiro PDF'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <a
-                    href={`/api/partituras/download/${p.id_partitura}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-xs"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download PDF</span>
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <MusicoCadernetaClient
+        partituras={partituras || []}
+        instrumentName={instrumentName}
+      />
     </DashboardLayout>
   );
 }
