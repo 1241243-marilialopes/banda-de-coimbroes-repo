@@ -10,7 +10,7 @@ export async function GET(
   try {
     const id = params.id;
     const partitura: any = await queryOne(
-      `SELECT np.nome_partitura, p.ficheiro_partitura 
+      `SELECT np.nome_partitura, p.ficheiro_partitura, p.nome_ficheiro 
        FROM tb_partituras p
        INNER JOIN tb_nome_partituras np ON p.nome = np.id_nome_partitura
        WHERE p.id_partitura = ?`,
@@ -22,9 +22,9 @@ export async function GET(
     }
 
     const buffer = Buffer.from(partitura.ficheiro_partitura);
-    const fileName = `${partitura.nome_partitura || 'partitura'}.pdf`;
+    const fileName = partitura.nome_ficheiro || `${partitura.nome_partitura || 'partitura'}.pdf`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

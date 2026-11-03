@@ -34,7 +34,7 @@ export default async function AdminCotasPage() {
 
     cotas = (await query(
       `SELECT c.id_pagamento, c.socio_id, c.ano as ano_id, a.ano as ano_real,
-              u.nome_utilizador,
+              u.nome_utilizador, u.numero_socio,
               c.janeiro, c.fevereiro, c.marco, c.abril, c.maio, c.junho,
               c.julho, c.agosto, c.setembro, c.outubro, c.novembro, c.dezembro, c.ano_completo
        FROM tb_cota_mes c

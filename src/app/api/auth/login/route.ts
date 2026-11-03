@@ -8,6 +8,7 @@ interface DbUser {
   senha: string;
   cargo_id: number;
   instrumento?: number | null;
+  tipo_socio?: number | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -23,12 +24,20 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await queryOne<DbUser>(
-      'SELECT id_utilizador, nome_utilizador, senha, cargo_id, instrumento FROM tb_utilizadores WHERE email = ?',
+      'SELECT id_utilizador, nome_utilizador, senha, cargo_id, instrumento, tipo_socio FROM tb_utilizadores WHERE email = ?',
       [login]
     );
 
     if (!user) {
       return NextResponse.json({ error: 'Email Incorreto' }, { status: 401 });
+    }
+
+    // REGRA DE NEGÓCIO: Se o sócio estiver inativo (tipo_socio = 7), perde acesso ao site
+    if (user.tipo_socio === 7) {
+      return NextResponse.json(
+        { error: 'A sua conta de sócio encontra-se inativa. Contacte a direção.' },
+        { status: 403 }
+      );
     }
 
     const isValid = await verifyPassword(senha, user.senha);

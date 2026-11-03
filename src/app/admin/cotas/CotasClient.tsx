@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CreditCard, Search, Loader2, Check } from 'lucide-react';
+import { CreditCard, Search, Loader2, Check, FileText, Printer, X, Download } from 'lucide-react';
 
 interface AnoOption {
   id_ano: number;
@@ -12,6 +12,7 @@ interface CotaMemberRow {
   id_pagamento: number;
   socio_id: number;
   nome_utilizador: string;
+  numero_socio?: number | string | null;
   ano_id: number;
   ano_real?: number | string;
   janeiro: number;
@@ -30,18 +31,24 @@ interface CotaMemberRow {
 }
 
 const MONTHS = [
-  { key: 'janeiro', short: 'Jan' },
-  { key: 'fevereiro', short: 'Fev' },
-  { key: 'marco', short: 'Mar' },
-  { key: 'abril', short: 'Abr' },
-  { key: 'maio', short: 'Mai' },
-  { key: 'junho', short: 'Jun' },
-  { key: 'julho', short: 'Jul' },
-  { key: 'agosto', short: 'Ago' },
-  { key: 'setembro', short: 'Set' },
-  { key: 'outubro', short: 'Out' },
-  { key: 'novembro', short: 'Nov' },
-  { key: 'dezembro', short: 'Dez' },
+  { key: 'janeiro', short: 'Jan', full: 'Janeiro' },
+  { key: 'fevereiro', short: 'Fev', full: 'Fevereiro' },
+  { key: 'marco', short: 'Mar', full: 'Março' },
+  { key: 'abril', short: 'Abr', full: 'Abril' },
+  { key: 'maio', short: 'Mai', full: 'Maio' },
+  { key: 'junho', short: 'Jun', full: 'Junho' },
+  { key: 'julho', short: 'Jul', full: 'Julho' },
+  { key: 'agosto', short: 'Ago', full: 'Agosto' },
+  { key: 'setembro', short: 'Set', full: 'Setembro' },
+  { key: 'outubro', short: 'Out', full: 'Outubro' },
+  { key: 'novembro', short: 'Nov', full: 'Novembro' },
+  { key: 'dezembro', short: 'Dez', full: 'Dezembro' },
+];
+
+const TIPOS_PAGAMENTO = [
+  { id: 1, label: 'Numerário' },
+  { id: 2, label: 'Transferência Bancária' },
+  { id: 3, label: 'MB Way' },
 ];
 
 export default function CotasClient({
@@ -60,6 +67,14 @@ export default function CotasClient({
   const [cotas, setCotas] = useState<CotaMemberRow[]>(initialCotas);
   const [search, setSearch] = useState('');
   const [updatingCell, setUpdatingCell] = useState<string | null>(null);
+
+  // Ficha de Pagamento Modal
+  const [fichaModalUser, setFichaModalUser] = useState<CotaMemberRow | null>(null);
+  const [tipoPagamento, setTipoPagamento] = useState<number>(1);
+  const [allFichasModal, setAllFichasModal] = useState(false);
+
+  const selectedAnoObj = anos.find((a) => a.id_ano === selectedAnoId);
+  const anoLabel = selectedAnoObj ? selectedAnoObj.ano : currentYear;
 
   async function handleToggle(id_pagamento: number, mes: string, currentValue: number) {
     const nextVal = currentValue === 1 ? 0 : 1;
@@ -96,75 +111,88 @@ export default function CotasClient({
                 };
               }
               const updated = { ...row, [mes]: nextVal };
-              // Verificar se todos os 12 meses estão pagos
               const allPaid = MONTHS.every((m) => (m.key === mes ? nextVal === 1 : (updated as any)[m.key] === 1));
-              updated.ano_completo = allPaid ? 1 : 0;
-              return updated;
+              return { ...updated, ano_completo: allPaid ? 1 : 0 };
             }
             return row;
           })
         );
       }
-    } catch (e) {
-      console.error('Erro ao atualizar cota:', e);
+    } catch (err) {
+      console.error('Erro ao atualizar quota:', err);
     } finally {
       setUpdatingCell(null);
     }
   }
 
   const filtered = cotas.filter((c) => {
-    if (c.ano_id !== selectedAnoId) return false;
-    if (search.trim()) {
-      return c.nome_utilizador.toLowerCase().includes(search.toLowerCase());
-    }
-    return true;
+    const matchesAno = c.ano_id === selectedAnoId;
+    const matchesSearch = search.trim() === '' || c.nome_utilizador.toLowerCase().includes(search.toLowerCase());
+    return matchesAno && matchesSearch;
   });
 
-  const selectedAnoLabel = anos.find((a) => a.id_ano === selectedAnoId)?.ano || selectedAnoId;
+  function getPaidMonths(row: CotaMemberRow) {
+    return MONTHS.filter((m) => (row as any)[m.key] === 1 || (row as any)[m.key] === '1');
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-neutral-900">
-            Mapa de Quotas — Ano de {selectedAnoLabel}
-          </h2>
-          <p className="text-sm text-neutral-500">
-            Clique em qualquer mês para marcar ou desmarcar o pagamento da quota
-          </p>
+      {/* Header Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border border-neutral-200 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-red-600/10 text-red-600 rounded-xl">
+            <CreditCard className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-neutral-900">Mapa Anual de Quotas</h2>
+            <p className="text-xs text-neutral-500 font-medium">
+              Controlo de liquidação de quotas mensais dos associados
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Seletor de Ano */}
+          {/* Seletor do Ano */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-neutral-600">Ano:</span>
+            <label className="text-xs font-bold text-neutral-500 uppercase">Ano:</label>
             <select
               value={selectedAnoId}
               onChange={(e) => setSelectedAnoId(Number(e.target.value))}
-              className="px-3.5 py-2 bg-white border border-neutral-200 rounded-xl text-xs sm:text-sm font-bold focus:border-red-500 focus:outline-none transition shadow-2xs"
+              className="px-3.5 py-1.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-bold text-neutral-900 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
             >
               {anos.map((a) => (
                 <option key={a.id_ano} value={a.id_ano}>
-                  Ano {a.ano}
+                  {a.ano} {Number(a.ano) === currentYear ? '(Corrente)' : ''}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Pesquisa */}
-          <div className="relative w-full sm:w-60">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-neutral-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Pesquisar sócio..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs sm:text-sm focus:border-red-500 focus:outline-none transition shadow-2xs"
-            />
-          </div>
+          {/* Botão Emitir Todas as Fichas */}
+          <button
+            onClick={() => setAllFichasModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white font-bold rounded-xl text-xs transition shadow-xs"
+            title="Emitir todas as fichas de pagamento do ano"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Emitir Fichas (Todos)</span>
+          </button>
         </div>
       </div>
 
+      {/* Barra de Pesquisa */}
+      <div className="relative">
+        <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <input
+          type="text"
+          placeholder="Pesquisar sócio pelo nome..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-xs sm:text-sm focus:border-red-500 focus:outline-none transition shadow-2xs"
+        />
+      </div>
+
+      {/* Tabela do Mapa Anual */}
       <div className="bg-white border border-neutral-200 rounded-2xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-center text-xs text-neutral-700">
@@ -177,12 +205,13 @@ export default function CotasClient({
                   </th>
                 ))}
                 <th className="py-3.5 px-3 font-black text-red-600">Ano Total</th>
+                <th className="py-3.5 px-3 font-bold text-neutral-500 text-right">Ficha</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="py-10 text-center text-neutral-500">
+                  <td colSpan={15} className="py-10 text-center text-neutral-500">
                     Nenhum registo de quotas encontrado para o ano selecionado.
                   </td>
                 </tr>
@@ -237,6 +266,18 @@ export default function CotasClient({
                         {Number(row.ano_completo) === 1 ? 'Completo' : 'Parcial'}
                       </button>
                     </td>
+
+                    {/* Botão Ficha de Pagamento */}
+                    <td className="py-3 px-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setFichaModalUser(row)}
+                        className="p-1.5 rounded-lg text-neutral-600 hover:text-red-600 hover:bg-red-50 transition"
+                        title="Emitir Ficha de Pagamento"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -244,6 +285,203 @@ export default function CotasClient({
           </table>
         </div>
       </div>
+
+      {/* Modal Ficha Individual */}
+      {fichaModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setFichaModalUser(null)}
+              className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition print:hidden"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Recibo para Impressão */}
+            <div id="print-receipt" className="space-y-5 p-2">
+              <div className="text-center pb-4 border-b border-neutral-200">
+                <span className="text-[11px] font-black uppercase tracking-widest text-red-600 block">
+                  Sociedade Musical 1º de Agosto
+                </span>
+                <h3 className="text-xl font-black text-neutral-900 mt-1">Banda de Coimbrões</h3>
+                <p className="text-xs text-neutral-500">Ficha / Recibo de Pagamento de Quotas</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-neutral-400 font-bold block uppercase">Associado</span>
+                  <p className="font-bold text-neutral-900 text-sm mt-0.5">{fichaModalUser.nome_utilizador}</p>
+                </div>
+                <div>
+                  <span className="text-neutral-400 font-bold block uppercase">Nº de Sócio</span>
+                  <p className="font-black text-neutral-900 text-sm mt-0.5">
+                    #{fichaModalUser.numero_socio !== null && fichaModalUser.numero_socio !== undefined ? fichaModalUser.numero_socio : fichaModalUser.socio_id}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-neutral-400 font-bold block uppercase">Ano de Exercício</span>
+                  <p className="font-bold text-neutral-900 mt-0.5">{anoLabel}</p>
+                </div>
+                <div>
+                  <span className="text-neutral-400 font-bold block uppercase">Data de Emissão</span>
+                  <p className="font-bold text-neutral-900 mt-0.5">
+                    {new Date().toLocaleDateString('pt-PT')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Seletor de Tipo de Pagamento */}
+              <div className="pt-2">
+                <label className="block text-xs font-bold text-neutral-700 uppercase mb-1.5">
+                  Forma de Pagamento Utilizada:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {TIPOS_PAGAMENTO.map((tp) => (
+                    <button
+                      key={tp.id}
+                      type="button"
+                      onClick={() => setTipoPagamento(tp.id)}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition text-center ${
+                        tipoPagamento === tp.id
+                          ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                          : 'bg-neutral-50 border-neutral-200 text-neutral-700 hover:bg-neutral-100'
+                      }`}
+                    >
+                      {tp.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Meses Liquidados */}
+              <div className="pt-2">
+                <span className="text-xs font-bold text-neutral-700 uppercase block mb-2">
+                  Situação das Mensalidades ({anoLabel}):
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {MONTHS.map((m) => {
+                    const isPaid = (fichaModalUser as any)[m.key] === 1 || (fichaModalUser as any)[m.key] === '1';
+                    return (
+                      <div
+                        key={m.key}
+                        className={`p-2 rounded-lg text-center border text-xs font-bold ${
+                          isPaid
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                            : 'bg-neutral-50 border-neutral-200 text-neutral-400'
+                        }`}
+                      >
+                        <span className="block text-[10px]">{m.short}</span>
+                        <span>{isPaid ? '✓ Pago' : '—'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs flex items-center justify-between font-bold">
+                <span className="text-neutral-600">Total de Mensalidades Liquidadas:</span>
+                <span className="text-red-600 text-sm">{getPaidMonths(fichaModalUser).length} / 12 meses</span>
+              </div>
+
+              <div className="pt-6 border-t border-neutral-200 text-center text-[10px] text-neutral-400">
+                Sociedade Musical 1º de Agosto • NIF: 501 547 319 • Coimbrões, V. N. Gaia
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-3 print:hidden">
+              <button
+                type="button"
+                onClick={() => setFichaModalUser(null)}
+                className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-100 transition"
+              >
+                Fechar
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-2"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Imprimir Ficha</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Emitir Todas as Fichas */}
+      {allFichasModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setAllFichasModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition print:hidden"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center pb-4 border-b border-neutral-200">
+              <span className="text-[11px] font-black uppercase tracking-widest text-red-600 block">
+                Sociedade Musical 1º de Agosto
+              </span>
+              <h3 className="text-xl font-black text-neutral-900 mt-1">
+                Mapa Geral de Quotas — Exercício de {anoLabel}
+              </h3>
+              <p className="text-xs text-neutral-500">Relatório consolidado de todos os associados</p>
+            </div>
+
+            <div className="py-4 space-y-4">
+              <div className="divide-y divide-neutral-100 border border-neutral-200 rounded-xl overflow-hidden">
+                {filtered.map((u) => {
+                  const paid = getPaidMonths(u);
+                  return (
+                    <div key={u.id_pagamento} className="p-3 text-xs flex items-center justify-between">
+                      <div>
+                        <span className="font-black text-neutral-900">{u.nome_utilizador}</span>
+                        <span className="text-neutral-400 ml-2">
+                          #{u.numero_socio !== null && u.numero_socio !== undefined ? u.numero_socio : u.socio_id}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-neutral-600">{paid.length}/12 meses</span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            paid.length === 12
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : paid.length > 0
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-neutral-100 text-neutral-500'
+                          }`}
+                        >
+                          {paid.length === 12 ? 'Liquidado' : paid.length > 0 ? 'Parcial' : 'Pendente'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-3 print:hidden">
+              <button
+                type="button"
+                onClick={() => setAllFichasModal(false)}
+                className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-100 transition"
+              >
+                Fechar
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-2"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Imprimir Relatório</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

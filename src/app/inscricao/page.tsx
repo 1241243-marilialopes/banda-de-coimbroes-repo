@@ -23,8 +23,8 @@ export default function InscricaoPage() {
     nif: '',
     data: '',
     email: '',
-    instrumento: '',
-    genero: '1',
+    instrumento: '21', // Nenhum por defeito
+    genero: '2',       // Nenhum por defeito
   });
 
   useEffect(() => {
@@ -33,7 +33,12 @@ export default function InscricaoPage() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setInstrumentos(data.map((i: any) => ({ id: i.id_instrumento, label: i.nome_instrumento })));
+          const list = data.map((i: any) => ({ id: i.id_instrumento, label: i.nome_instrumento }));
+          setInstrumentos(list);
+          const nenhumInst = list.find((i) => i.label.toLowerCase() === 'nenhum');
+          if (nenhumInst) {
+            setFormData((prev) => ({ ...prev, instrumento: String(nenhumInst.id) }));
+          }
         }
       })
       .catch(() => {
@@ -224,9 +229,9 @@ export default function InscricaoPage() {
                   onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
                   className="w-full px-4 py-2.5 bg-neutral-950 border border-neutral-700 rounded-lg focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none transition text-white"
                 >
-                  <option value="1">Masculino</option>
-                  <option value="2">Feminino</option>
-                  <option value="3">Outro</option>
+                  <option value="2">Nenhum (Padrão)</option>
+                  <option value="0">Masculino</option>
+                  <option value="1">Feminino</option>
                 </select>
               </div>
 

@@ -62,6 +62,17 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+// Helper to get profile/card links based on role
+function getPerfilLinks(cargo: number) {
+  if (cargo === 0 || cargo === 2) {
+    return { perfil: '/admin/conta', cartao: '/admin/cartao' };
+  } else if (cargo === 1) {
+    return { perfil: '/musicos-socios/conta', cartao: '/musicos-socios/cartao' };
+  } else {
+    return { perfil: '/socios/conta', cartao: '/socios/cartao' };
+  }
+}
+
 export default function DashboardLayout({
   user,
   title,
@@ -74,6 +85,10 @@ export default function DashboardLayout({
 
   const [calendarExpanded, setCalendarExpanded] = useState(
     pathname.startsWith('/admin/calendario') || pathname.startsWith('/admin/gerir-servicos')
+  );
+
+  const [perfilExpanded, setPerfilExpanded] = useState(
+    pathname.includes('/conta') || pathname.includes('/cartao')
   );
 
   useEffect(() => {
@@ -101,6 +116,14 @@ export default function DashboardLayout({
     2: 'Admin, Músico, Sócio',
     3: 'Sócio',
   };
+
+  // Compute profile base path based on role
+  const perfilBase =
+    user.cargo === 0 || user.cargo === 2
+      ? '/admin'
+      : user.cargo === 1
+      ? '/musicos-socios'
+      : '/socios';
 
   // Seções da Sidebar exatamente como no original PHP
   let sections: NavSection[] = [];
@@ -156,7 +179,14 @@ export default function DashboardLayout({
       {
         heading: 'Perfil',
         items: [
-          { label: 'Eu', href: '/admin/conta', iconName: 'user' },
+          {
+            label: 'Eu',
+            iconName: 'user',
+            subItems: [
+              { label: 'Perfil', href: `${perfilBase}/conta` },
+              { label: 'Cartão', href: `${perfilBase}/cartao` },
+            ],
+          },
         ],
       }
     );
@@ -184,7 +214,14 @@ export default function DashboardLayout({
       {
         heading: 'Perfil',
         items: [
-          { label: 'Eu', href: '/musicos-socios/conta', iconName: 'user' },
+          {
+            label: 'Eu',
+            iconName: 'user',
+            subItems: [
+              { label: 'Perfil', href: `${perfilBase}/conta` },
+              { label: 'Cartão', href: `${perfilBase}/cartao` },
+            ],
+          },
         ],
       },
     ];
@@ -204,13 +241,103 @@ export default function DashboardLayout({
       {
         heading: 'Perfil',
         items: [
-          { label: 'Eu', href: '/socios/conta', iconName: 'user' },
+          {
+            label: 'Eu',
+            iconName: 'user',
+            subItems: [
+              { label: 'Perfil', href: `${perfilBase}/conta` },
+              { label: 'Cartão', href: `${perfilBase}/cartao` },
+            ],
+          },
         ],
       },
     ];
   }
 
   const isDark = theme === 'dark';
+
+  // Render a nav item that has sub-items, using its own expanded state setter
+  function renderExpandableItem(
+    item: NavItem,
+    itemIdx: number,
+    expanded: boolean,
+    setExpanded: (v: boolean) => void,
+    sectionLabel: string
+  ) {
+    const Icon = ICON_MAP[item.iconName] || Home;
+    const isSubActive = item.subItems!.some((s) => pathname.startsWith(s.href));
+    return (
+      <div key={itemIdx} className="space-y-1">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
+            isSubActive
+              ? isDark
+                ? 'text-white bg-neutral-800'
+                : 'text-neutral-900 bg-neutral-100 font-bold'
+              : isDark
+              ? 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Icon className={`w-4 h-4 ${isSubActive ? 'text-red-600' : 'text-red-600'}`} />
+            <span>{item.label}</span>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${
+              expanded ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {expanded && (
+          <div
+            className={`p-2.5 my-1 rounded-xl shadow-xs border space-y-1 ${
+              isDark ? 'bg-neutral-800/90 border-neutral-700' : 'bg-white border-neutral-200 shadow-sm'
+            }`}
+          >
+            <span className="block px-2 text-[10px] font-black uppercase tracking-wider text-neutral-400 pb-1">
+              {sectionLabel}:
+            </span>
+            {item.subItems!.map((sub, subIdx) => {
+              const isChildActive = pathname === sub.href;
+              return (
+                <Link
+                  key={subIdx}
+                  href={sub.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`block px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    isChildActive
+                      ? 'bg-red-600 text-white font-bold'
+                      : isDark
+                      ? 'text-neutral-300 hover:text-white hover:bg-neutral-700'
+                      : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+                  }`}
+                >
+                  {sub.label}
+                </Link>
+              );
+            })}
+            {item.iconName === 'user' && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  isDark
+                    ? 'text-neutral-300 hover:text-red-400 hover:bg-neutral-700'
+                    : 'text-neutral-700 hover:text-red-600 hover:bg-neutral-100'
+                }`}
+              >
+                Logout
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -304,8 +431,22 @@ export default function DashboardLayout({
                 : 'bg-neutral-50 border-neutral-200 shadow-xs'
             }`}
           >
-            <div className="w-9 h-9 rounded-full bg-red-600/15 text-red-600 border border-red-500/30 flex items-center justify-center font-bold text-sm">
-              {user.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-red-500/30 flex-shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/utilizadores/foto/${user.id}`}
+                alt={user.nome}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.classList.add('bg-red-600/15', 'text-red-600', 'flex', 'items-center', 'justify-center', 'font-bold', 'text-sm');
+                    parent.textContent = user.nome ? user.nome.charAt(0).toUpperCase() : 'U';
+                  }
+                }}
+              />
             </div>
             <div className="overflow-hidden min-w-0">
               <p className="text-xs font-bold truncate leading-tight">{user.nome}</p>
@@ -327,67 +468,16 @@ export default function DashboardLayout({
                 {sec.items.map((item, itemIdx) => {
                   const Icon = ICON_MAP[item.iconName] || Home;
 
-                  // Se o item tiver sub-itens (ex.: Calendário -> Ver / Gerir)
+                  // Se o item tiver sub-itens
                   if (item.subItems) {
-                    const isSubActive = item.subItems.some((s) => pathname.startsWith(s.href));
-                    return (
-                      <div key={itemIdx} className="space-y-1">
-                        <button
-                          type="button"
-                          onClick={() => setCalendarExpanded(!calendarExpanded)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition ${
-                            isSubActive
-                              ? isDark
-                                ? 'text-white bg-neutral-800'
-                                : 'text-neutral-900 bg-neutral-100 font-bold'
-                              : isDark
-                              ? 'text-neutral-300 hover:text-white hover:bg-neutral-800'
-                              : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className={`w-4 h-4 ${isSubActive ? 'text-red-600' : 'text-red-600'}`} />
-                            <span>{item.label}</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${
-                              calendarExpanded ? 'rotate-180' : ''
-                            }`}
-                          />
-                        </button>
-
-                        {calendarExpanded && (
-                          <div
-                            className={`pl-8 pr-2 py-1 space-y-1 border-l-2 ml-5 ${
-                              isDark ? 'border-neutral-700' : 'border-neutral-200'
-                            }`}
-                          >
-                            <span className="block px-2 text-[10px] font-black uppercase tracking-wider text-neutral-400 pb-1">
-                              Calendário:
-                            </span>
-                            {item.subItems.map((sub, subIdx) => {
-                              const isChildActive = pathname === sub.href;
-                              return (
-                                <Link
-                                  key={subIdx}
-                                  href={sub.href}
-                                  onClick={() => setSidebarOpen(false)}
-                                  className={`block px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                                    isChildActive
-                                      ? 'bg-red-600 text-white font-bold'
-                                      : isDark
-                                      ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
-                                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
-                                  }`}
-                                >
-                                  {sub.label}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
+                    // Determine which expanded state to use
+                    if (item.iconName === 'calendar') {
+                      return renderExpandableItem(item, itemIdx, calendarExpanded, setCalendarExpanded, 'CALENDÁRIO');
+                    } else if (item.iconName === 'user') {
+                      return renderExpandableItem(item, itemIdx, perfilExpanded, setPerfilExpanded, 'EU');
+                    }
+                    // Fallback generic
+                    return renderExpandableItem(item, itemIdx, false, () => {}, item.label);
                   }
 
                   const isActive = pathname === item.href;

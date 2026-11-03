@@ -48,6 +48,60 @@ export async function POST(req: NextRequest) {
       [nextPago, corBotao, textoPagar, textoPagar, nextPago === 1 ? 'green' : 'red', id_presenca]
     );
 
+    // Send email notification when payment is confirmed
+    if (nextPago === 1) {
+      try {
+        const infoRows: any = await query(
+          `SELECT u.email, u.nome_utilizador, s.nome_servico 
+           FROM tb_presencas p 
+           JOIN tb_utilizadores u ON u.id_utilizador = p.musico_id
+           JOIN tb_servicos s ON s.id_servico = p.servico_id
+           WHERE p.id_presenca = ?`,
+          [id_presenca]
+        );
+
+        if (infoRows && infoRows.length > 0) {
+          const { email, nome_utilizador, nome_servico } = infoRows[0];
+          const now = new Date();
+          const dateStr = now.toLocaleString('pt-PT', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+          });
+
+          // Dynamic import to avoid build-time issues
+          const nodemailer = await import('nodemailer');
+          const transporter = nodemailer.default.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+              user: 'sociedademusical1agosto@gmail.com',
+              pass: 'zvqn ojbm sjdb xklx',
+            },
+          });
+
+          await transporter.sendMail({
+            from: '"Banda de Coimbrões" <sociedademusical1agosto@gmail.com>',
+            to: email,
+            subject: 'Confirmação de pagamento!',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #dc2626;">Confirmação de Pagamento</h2>
+                <p>Olá, <strong>${nome_utilizador}</strong>!</p>
+                <p>O seu pagamento relativo ao serviço <strong>${nome_servico}</strong> foi confirmado.</p>
+                <p><strong>Data de confirmação:</strong> ${dateStr}</p>
+                <p>Obrigado pela sua participação!</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <p style="color: #6b7280; font-size: 12px;">Sociedade Musical 1º de Agosto — Banda de Coimbrões</p>
+              </div>
+            `,
+          });
+        }
+      } catch (emailErr) {
+        console.error('Erro ao enviar email de confirmação de pagamento:', emailErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       pago: nextPago,

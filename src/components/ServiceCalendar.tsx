@@ -88,7 +88,7 @@ export default function ServiceCalendar({ events, isAdmin = false }: ServiceCale
       if (!isNaN(d.getTime())) return new Date(d.getFullYear(), d.getMonth(), 1);
     }
 
-    // Se todos forem no passado, abre no mês do último evento registado na BD
+    // Se todos forem no passado (como dados de 2025), abre no mês do último evento registado na BD
     const lastEvent = events[events.length - 1];
     if (lastEvent) {
       const d = new Date(lastEvent.data_inicial);
@@ -178,13 +178,19 @@ export default function ServiceCalendar({ events, isAdmin = false }: ServiceCale
     });
   }
 
-  // Mapear eventos por data
+  // Mapear eventos por data - robusto ao timezone
   function getEventsForDate(dateStr: string) {
     return events.filter((ev) => {
       if (!ev.data_inicial) return false;
       const str = String(ev.data_inicial);
-      const evDate = str.includes('T') ? str.split('T')[0] : str.split(' ')[0];
-      return evDate === dateStr;
+      // Handle both ISO format (2025-07-24T14:00:00.000Z) and MySQL format (2025-07-24 14:00:00)
+      // Always extract just the date part (YYYY-MM-DD)
+      let evDate = str.slice(0, 10);
+      // If the string starts with a valid date format, use it directly
+      if (/^\d{4}-\d{2}-\d{2}/.test(evDate)) {
+        return evDate === dateStr;
+      }
+      return false;
     });
   }
 
@@ -197,10 +203,32 @@ export default function ServiceCalendar({ events, isAdmin = false }: ServiceCale
             <CalendarIcon className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 capitalize">
-              {MONTH_NAMES[currentMonth]} {currentYear}
-            </h2>
-            <p className="text-xs text-neutral-500 font-medium">
+            <div className="flex items-center gap-2">
+              <select
+                value={currentMonth}
+                onChange={(e) => setCurrentDate(new Date(currentYear, Number(e.target.value), 1))}
+                className="text-lg sm:text-xl font-black text-neutral-900 bg-transparent border-b border-neutral-300 focus:outline-none focus:border-red-600 cursor-pointer capitalize py-0.5"
+              >
+                {MONTH_NAMES.map((m, idx) => (
+                  <option key={idx} value={idx}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={currentYear}
+                onChange={(e) => setCurrentDate(new Date(Number(e.target.value), currentMonth, 1))}
+                className="text-lg sm:text-xl font-black text-neutral-900 bg-transparent border-b border-neutral-300 focus:outline-none focus:border-red-600 cursor-pointer py-0.5"
+              >
+                {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="text-xs text-neutral-500 font-medium mt-0.5">
               Total de {events.length} serviços registados na base de dados
             </p>
           </div>
@@ -312,20 +340,30 @@ export default function ServiceCalendar({ events, isAdmin = false }: ServiceCale
 
                   {/* Event pills on the day */}
                   <div className="space-y-1 mt-1 flex-1 overflow-hidden">
-                    {dayEvents.map((ev) => (
-                      <button
-                        key={ev.id_servico}
-                        onClick={() => setSelectedEvent(ev)}
-                        className="w-full text-left px-2 py-1 rounded-md text-[11px] font-bold truncate block transition hover:scale-[1.02] shadow-xs cursor-pointer"
-                        style={{
-                          backgroundColor: ev.color ? `${ev.color}20` : '#dc262615',
-                          color: ev.color || '#b91c1c',
-                          borderLeft: `3px solid ${ev.color || '#dc2626'}`,
-                        }}
-                      >
-                        {ev.nome_servico}
-                      </button>
-                    ))}
+                    {dayEvents.map((ev) => {
+                      const timeStr = ev.data_inicial && ev.data_inicial.includes('T')
+                        ? ev.data_inicial.split('T')[1].slice(0, 5)
+                        : ev.data_inicial && ev.data_inicial.includes(' ')
+                        ? ev.data_inicial.split(' ')[1].slice(0, 5)
+                        : '';
+
+                      return (
+                        <button
+                          key={ev.id_servico}
+                          onClick={() => setSelectedEvent(ev)}
+                          className="w-full text-left px-1.5 py-1 rounded text-[10px] sm:text-[11px] font-bold truncate block transition hover:scale-[1.02] shadow-xs cursor-pointer"
+                          style={{
+                            backgroundColor: ev.color ? `${ev.color}25` : '#17171720',
+                            color: ev.color || '#171717',
+                            borderLeft: `3px solid ${ev.color || '#171717'}`,
+                          }}
+                        >
+                          {timeStr ? `${timeStr} ` : ''}
+                          {ev.nome_servico}
+                          {ev.localizacao ? ` - ${ev.localizacao}` : ''}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -382,6 +420,31 @@ export default function ServiceCalendar({ events, isAdmin = false }: ServiceCale
           )}
         </div>
       )}
+
+      {/* Legenda dos Tipos de Serviço no fim da página do calendário */}
+      <div className="bg-white border border-neutral-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+        <h4 className="text-xs font-black text-neutral-400 uppercase tracking-wider mb-3">
+          Legenda dos Tipos de Serviço:
+        </h4>
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs font-bold text-neutral-700">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#2563eb] shadow-xs shrink-0" />
+            <span>Concerto</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#dc2626] shadow-xs shrink-0" />
+            <span>Festa</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#d97706] shadow-xs shrink-0" />
+            <span>Arruada</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#059669] shadow-xs shrink-0" />
+            <span>Convívio</span>
+          </div>
+        </div>
+      </div>
 
       {/* Modal de Detalhes do Evento */}
       {selectedEvent && (

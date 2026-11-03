@@ -50,6 +50,34 @@ export default function PresencasClient({
     setTimeout(() => setToast(null), 4000);
   }
 
+  async function togglePresenca(id_presenca: number) {
+    setUpdatingId(id_presenca);
+    try {
+      const res = await fetch('/api/admin/presencas/toggle-presenca', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_presenca }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast('error', data.error || 'Erro ao alterar presença.');
+        return;
+      }
+
+      setPresencas((prev) =>
+        prev.map((p) =>
+          p.id_presenca === id_presenca ? { ...p, confirmado: data.confirmado } : p
+        )
+      );
+
+      showToast('success', data.message || 'Presença atualizada com sucesso!');
+    } catch (e: any) {
+      showToast('error', e.message || 'Erro ao comunicar com o servidor.');
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
   async function togglePagamento(id_presenca: number) {
     setUpdatingId(id_presenca);
     try {
@@ -212,12 +240,16 @@ export default function PresencasClient({
                         {p.data_inicial || '—'}
                       </td>
                       <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                        <button
+                          type="button"
+                          disabled={updatingId === p.id_presenca}
+                          onClick={() => togglePresenca(p.id_presenca)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-2xs ${
                             isConfirmed
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
+                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300'
+                              : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300'
+                          } disabled:opacity-50`}
+                          title="Clique para alternar presença do músico"
                         >
                           {isConfirmed ? (
                             <>
@@ -230,7 +262,7 @@ export default function PresencasClient({
                               <span>{p.confirmado || 'Não confirmada'}</span>
                             </>
                           )}
-                        </span>
+                        </button>
                       </td>
                       <td className="py-3 px-4 text-center">
                         <button

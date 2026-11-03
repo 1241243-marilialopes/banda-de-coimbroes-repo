@@ -171,28 +171,25 @@ export default function MusicoPresencasClient({
                         {p.localizacao || '—'}
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <button
-                          type="button"
-                          disabled={updatingId === p.id_presenca}
-                          onClick={() => handleTogglePresenca(p.id_presenca)}
-                          className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition ${
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                             isConfirmed
-                              ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-2xs'
-                              : 'bg-amber-500 text-white hover:bg-amber-600 shadow-2xs'
-                          } disabled:opacity-50`}
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
+                          }`}
                         >
                           {isConfirmed ? (
                             <>
                               <Check className="w-3.5 h-3.5 stroke-[3]" />
-                              <span>{updatingId === p.id_presenca ? '...' : 'Confirmada'}</span>
+                              <span>Confirmada</span>
                             </>
                           ) : (
                             <>
                               <Clock className="w-3.5 h-3.5" />
-                              <span>{updatingId === p.id_presenca ? '...' : 'Não confirmada'}</span>
+                              <span>Não confirmada</span>
                             </>
                           )}
-                        </button>
+                        </span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span

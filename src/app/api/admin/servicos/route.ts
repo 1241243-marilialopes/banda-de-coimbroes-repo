@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel, valor } = body;
+    const { nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel } = body;
 
     if (!nome || !data_inicial || !data_final) {
       return NextResponse.json({ error: 'Nome, data inicial e data final são obrigatórios.' }, { status: 400 });
@@ -28,20 +28,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const TYPE_COLORS: Record<number, string> = {
+      1: '#2563eb', // Concerto
+      2: '#dc2626', // Festa
+      3: '#d97706', // Arruada
+      4: '#059669', // Convívio
+    };
+    const color = TYPE_COLORS[Number(tipo)] || '#2563eb';
+
     const res: any = await query(
       `INSERT INTO tb_servicos 
-       (nome_servico, descricao_servico, tipo, color, data_inicial, data_final, localizacao, contacto_comissao, nome_comissao, valor) 
-       VALUES (?, ?, ?, '#808080', ?, ?, ?, ?, ?, ?)`,
+       (nome_servico, descricao_servico, tipo, color, data_inicial, data_final, localizacao, contacto_comissao, nome_comissao) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nome,
         descricao || '',
         tipo ? Number(tipo) : 1,
+        color,
         data_inicial,
         data_final,
         localizacao || '',
         contacto || '',
         responsavel || '',
-        valor ? Number(valor) : 0,
       ]
     );
 
@@ -78,7 +86,7 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id_servico, nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel, valor } = body;
+    const { id_servico, nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel } = body;
 
     if (!id_servico || !nome || !data_inicial || !data_final) {
       return NextResponse.json({ error: 'Dados incompletos.' }, { status: 400 });
@@ -94,21 +102,29 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const TYPE_COLORS: Record<number, string> = {
+      1: '#2563eb', // Concerto
+      2: '#dc2626', // Festa
+      3: '#d97706', // Arruada
+      4: '#059669', // Convívio
+    };
+    const color = TYPE_COLORS[Number(tipo)] || '#2563eb';
+
     await query(
       `UPDATE tb_servicos 
-       SET nome_servico = ?, descricao_servico = ?, tipo = ?, data_inicial = ?, data_final = ?, 
-           localizacao = ?, contacto_comissao = ?, nome_comissao = ?, valor = ?
+       SET nome_servico = ?, descricao_servico = ?, tipo = ?, color = ?, data_inicial = ?, data_final = ?, 
+           localizacao = ?, contacto_comissao = ?, nome_comissao = ?
        WHERE id_servico = ?`,
       [
         nome,
         descricao || '',
         tipo ? Number(tipo) : 1,
+        color,
         data_inicial,
         data_final,
         localizacao || '',
         contacto || '',
         responsavel || '',
-        valor ? Number(valor) : 0,
         id_servico,
       ]
     );

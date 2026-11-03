@@ -29,6 +29,7 @@ export default async function AdminContaPage() {
     userDetails = await queryOne(
       `SELECT u.id_utilizador, u.nome_utilizador, u.telemovel, u.numero_cc, u.nif, 
               u.data_nascimento, u.email, u.instrumento, u.genero_id, u.cargo_id,
+              u.numero_socio, u.morada, u.area_residencia,
               i.nome_instrumento, c.nome_cargo, g.genero
        FROM tb_utilizadores u
        LEFT JOIN tb_genero g ON u.genero_id = g.id_genero

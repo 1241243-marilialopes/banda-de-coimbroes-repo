@@ -7,6 +7,24 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
+function formatPtDate(val: any): string {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return String(val);
+  const formatted = d.toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
+  if (hours !== 0 || minutes !== 0) {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${formatted} às ${pad(hours)}:${pad(minutes)}`;
+  }
+  return formatted;
+}
+
 export default async function SocioDashboardPage() {
   const user = await getCurrentUser();
 
@@ -15,6 +33,9 @@ export default async function SocioDashboardPage() {
   }
 
   let quotas: any[] = [];
+  let aniversarios: any[] = [];
+  let proximosServicosAlerta: any[] = [];
+
   try {
     quotas = await query(
       `SELECT ano, janeiro, fevereiro, marco, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro, ano_completo 
@@ -23,9 +44,39 @@ export default async function SocioDashboardPage() {
        ORDER BY ano DESC LIMIT 3`,
       [user.id]
     );
+
+    aniversarios = await query(`
+      SELECT nome_utilizador, data_nascimento 
+      FROM tb_utilizadores 
+      WHERE DATE_FORMAT(data_nascimento, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d')
+         OR DATE_FORMAT(data_nascimento, '%m-%d') = DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 DAY), '%m-%d')
+    `) as any[];
+
+    proximosServicosAlerta = await query(`
+      SELECT nome_servico, data_inicial, localizacao 
+      FROM tb_servicos 
+      WHERE data_inicial BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY)
+      ORDER BY data_inicial ASC
+    `) as any[];
   } catch (err) {
     console.warn('Erro ao carregar quotas do sócio:', err);
   }
+
+  const todayMD = (() => {
+    const d = new Date();
+    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+
+  const serializedAniversarios = aniversarios.map((a: any) => ({
+    nome_utilizador: a.nome_utilizador,
+    data_nascimento: a.data_nascimento ? String(a.data_nascimento).slice(5, 10) : '',
+  }));
+
+  const serializedAlerta = proximosServicosAlerta.map((s: any) => ({
+    nome_servico: s.nome_servico,
+    localizacao: s.localizacao || '',
+    data_inicial: formatPtDate(s.data_inicial),
+  }));
 
   const meses = [
     'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
@@ -35,6 +86,47 @@ export default async function SocioDashboardPage() {
   return (
     <DashboardLayout user={user} title="Área do Associado">
       <div className="space-y-6">
+        {/* Alerts Section (Aniversários & Serviços) */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-neutral-600 mb-2">Avisos de Aniversários</h3>
+            {serializedAniversarios.length === 0 ? (
+              <div className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl text-sm font-medium text-emerald-800">
+                Ninguém faz anos hoje/amanhã
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {serializedAniversarios.map((a: any, i: number) => {
+                  const isToday = a.data_nascimento === todayMD;
+                  return (
+                    <div key={i} className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-sm font-semibold text-amber-900">
+                      🎉 {a.nome_utilizador} faz anos {isToday ? 'hoje' : 'amanhã'}!
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-neutral-600 mb-2">Avisos de Serviços</h3>
+            {serializedAlerta.length === 0 ? (
+              <div className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl text-sm font-medium text-emerald-800">
+                Sem serviços próximos
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {serializedAlerta.map((s: any, i: number) => (
+                  <div key={i} className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-sm font-semibold text-blue-900 flex items-center justify-between">
+                    <span>🎺 {s.nome_servico} {s.localizacao ? `(${s.localizacao})` : ''}</span>
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md font-bold">{s.data_inicial}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Cartão de Sócio */}
         <div className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

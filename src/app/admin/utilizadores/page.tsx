@@ -17,16 +17,21 @@ export default async function AdminUtilizadoresPage() {
   let instrumentos: any[] = [];
   let cargos: any[] = [];
   let generos: any[] = [];
+  let tiposSocio: any[] = [];
+  let proximoNumeroSocio = 1;
 
   try {
     const rawUsers: any = await query(
       `SELECT u.id_utilizador, u.nome_utilizador, u.telemovel, u.numero_cc, u.nif, 
               u.data_nascimento, u.email, u.instrumento, i.nome_instrumento, 
-              u.genero_id, g.genero, u.cargo_id, c.nome_cargo, u.foto_perfil
+              u.genero_id, g.genero, u.cargo_id, c.nome_cargo,
+              u.numero_socio, u.tipo_socio, ts.tipo_socio AS nome_tipo_socio,
+              u.morada, u.area_residencia
        FROM tb_utilizadores u
        LEFT JOIN tb_genero g ON u.genero_id = g.id_genero
        LEFT JOIN tb_cargo c ON u.cargo_id = c.id_cargo
        LEFT JOIN tb_instrumentos i ON u.instrumento = i.id_instrumento
+       LEFT JOIN tb_tipos_socio ts ON u.tipo_socio = ts.id_tipo_socio
        ORDER BY u.nome_utilizador ASC`
     );
 
@@ -38,6 +43,10 @@ export default async function AdminUtilizadoresPage() {
           : String(u.data_nascimento).slice(0, 10)
         : '',
     }));
+
+    // Próximo número de sócio disponível
+    const maxSocio: any = await query('SELECT MAX(COALESCE(numero_socio, 0)) AS max_num FROM tb_utilizadores');
+    proximoNumeroSocio = (maxSocio[0]?.max_num || 0) + 1;
 
     const rawInst: any = await query(
       'SELECT id_instrumento, nome_instrumento FROM tb_instrumentos ORDER BY nome_instrumento ASC'
@@ -62,6 +71,14 @@ export default async function AdminUtilizadoresPage() {
       id: g.id_genero,
       label: g.genero,
     }));
+
+    const rawTiposSocio: any = await query(
+      'SELECT id_tipo_socio, tipo_socio FROM tb_tipos_socio ORDER BY id_tipo_socio ASC'
+    );
+    tiposSocio = rawTiposSocio.map((t: any) => ({
+      id: t.id_tipo_socio,
+      label: t.tipo_socio,
+    }));
   } catch (err) {
     console.warn('Erro ao carregar utilizadores:', err);
   }
@@ -73,6 +90,8 @@ export default async function AdminUtilizadoresPage() {
         instrumentos={instrumentos}
         cargos={cargos}
         generos={generos}
+        tiposSocio={tiposSocio}
+        proximoNumeroSocio={proximoNumeroSocio}
       />
     </DashboardLayout>
   );
