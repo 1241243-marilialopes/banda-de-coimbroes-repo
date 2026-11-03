@@ -15,10 +15,15 @@ export default async function AdminCadernetaPage() {
 
   let instrumentos: any[] = [];
   let partituras: any[] = [];
+  let pecas: any[] = [];
 
   try {
     instrumentos = (await query(
       'SELECT id_instrumento, nome_instrumento FROM tb_instrumentos ORDER BY nome_instrumento ASC'
+    )) as any[];
+
+    pecas = (await query(
+      'SELECT id_nome_partitura, nome_partitura FROM tb_nome_partituras ORDER BY nome_partitura ASC'
     )) as any[];
 
     partituras = (await query(
@@ -35,7 +40,11 @@ export default async function AdminCadernetaPage() {
 
   return (
     <DashboardLayout user={user} title="Arquivo de Partituras & Caderneta">
-      <CadernetaClient instrumentos={instrumentos || []} partituras={partituras || []} />
+      <CadernetaClient
+        instrumentos={instrumentos || []}
+        partituras={partituras || []}
+        pecas={pecas || []}
+      />
     </DashboardLayout>
   );
 }

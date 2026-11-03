@@ -47,6 +47,8 @@ export default async function AdminDashboardPage() {
   let proximosServicos: any[] = [];
   let aniversarios: any[] = [];
   let proximosServicosAlerta: any[] = [];
+  let cotasTotal = 0;
+  let cotasRegularizadas = 0;
 
   try {
     const userCount: any = await query('SELECT COUNT(*) as count FROM tb_utilizadores');
@@ -58,9 +60,23 @@ export default async function AdminDashboardPage() {
     const servicosCount: any = await query('SELECT COUNT(*) as count FROM tb_servicos');
     totalServicos = servicosCount[0]?.count || 0;
 
+    // Próximos serviços futuros (não passados)
     proximosServicos = await query(
-      'SELECT id_servico, nome_servico, data_inicial, localizacao FROM tb_servicos ORDER BY data_inicial DESC LIMIT 5'
+      'SELECT id_servico, nome_servico, data_inicial, localizacao FROM tb_servicos WHERE data_inicial >= CURDATE() ORDER BY data_inicial ASC LIMIT 5'
     );
+
+    const currentYear = new Date().getFullYear();
+    const cotasStats: any = await query(
+      `SELECT 
+         COUNT(*) as total_socios_cotas,
+         SUM(CASE WHEN ano_completo = 'COMPLETO' THEN 1 ELSE 0 END) as total_regularizadas
+       FROM tb_cota_mes WHERE ano = ?`,
+      [currentYear]
+    );
+    if (cotasStats.length > 0) {
+      cotasTotal = cotasStats[0].total_socios_cotas || 0;
+      cotasRegularizadas = cotasStats[0].total_regularizadas || 0;
+    }
 
     aniversarios = await query(`
       SELECT nome_utilizador, data_nascimento, genero_id 

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { query, queryOne } from '@/lib/db';
 import DashboardLayout from '@/components/DashboardLayout';
+import CartaoSocioCard from '@/components/CartaoSocioCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,86 +65,30 @@ export default async function AdminCartaoPage() {
   const now = new Date();
   const mesCorrenteTexto = `${MONTH_NAMES_PT[now.getMonth()]} ${now.getFullYear()}`;
 
-  const birthDateFormatted = u.data_nascimento
-    ? u.data_nascimento instanceof Date
-      ? u.data_nascimento.toISOString().slice(0, 10)
-      : String(u.data_nascimento).slice(0, 10)
-    : '—';
+  let birthDateFormatted = '—';
+  if (u.data_nascimento) {
+    try {
+      if (u.data_nascimento instanceof Date) {
+        birthDateFormatted = u.data_nascimento.toISOString().slice(0, 10);
+      } else {
+        birthDateFormatted = String(u.data_nascimento).slice(0, 10);
+      }
+    } catch {
+      birthDateFormatted = String(u.data_nascimento).slice(0, 10);
+    }
+  }
 
   return (
     <DashboardLayout user={session} title="Cartão de Sócio">
       <div className="max-w-xl mx-auto py-8">
-        {/* Cartão de Sócio Exato como no Mockup */}
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-neutral-200/80 shadow-md relative">
-          {/* Cabeçalho do Cartão */}
-          <div className="flex items-start justify-between">
-            <span className="text-base font-semibold text-neutral-500 tracking-wide">
-              Cartão de Sócio
-            </span>
-
-            <div className="flex flex-col items-end gap-1.5">
-              {/* Bola indicadora: Verde se regular, Amarelo/Vermelho se não regular */}
-              <span
-                className={`w-4 h-4 rounded-full inline-block shadow-sm ${
-                  isRegular
-                    ? 'bg-emerald-500 shadow-emerald-500/50'
-                    : 'bg-amber-500 shadow-amber-500/50'
-                }`}
-                title={isRegular ? 'Quotas regularizadas' : 'Quotas em atraso'}
-              />
-              <span className="text-xs font-medium text-neutral-400">
-                {mesCorrenteTexto}
-              </span>
-            </div>
-          </div>
-
-          {/* Conteúdo do Cartão: Foto à esquerda e Informações à direita */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-10 mt-8 mb-2">
-            {/* Foto Circular */}
-            <div className="w-36 h-36 rounded-full overflow-hidden bg-neutral-200 shrink-0 flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/utilizadores/foto/${u.id_utilizador || session.id}`}
-                alt={u.nome_utilizador || session.nome}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/assets/img/utilizador.jpg';
-                }}
-              />
-            </div>
-
-            {/* Dados do Sócio */}
-            <div className="space-y-4 text-center sm:text-left flex-1">
-              <div>
-                <h4 className="text-base font-black text-neutral-900 tracking-tight">
-                  Nº de Sócio
-                </h4>
-                <p className="text-sm text-neutral-700 font-medium mt-0.5">
-                  {u.numero_socio || u.id_utilizador || session.id}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-base font-black text-neutral-900 tracking-tight">
-                  Nome
-                </h4>
-                <p className="text-sm text-neutral-700 font-medium mt-0.5">
-                  {u.nome_utilizador || session.nome}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-base font-black text-neutral-900 tracking-tight">
-                  Data de Nascimento
-                </h4>
-                <p className="text-sm text-neutral-700 font-medium mt-0.5">
-                  {birthDateFormatted}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CartaoSocioCard
+          numeroSocio={u.numero_socio || u.id_utilizador || session.id}
+          nome={u.nome_utilizador || session.nome}
+          dataNascimento={birthDateFormatted}
+          idUtilizador={u.id_utilizador || session.id}
+          isRegular={isRegular}
+          mesCorrenteTexto={mesCorrenteTexto}
+        />
       </div>
     </DashboardLayout>
   );

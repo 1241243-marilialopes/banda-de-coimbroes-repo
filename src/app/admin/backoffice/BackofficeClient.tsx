@@ -6,6 +6,9 @@ import {
   FileEdit,
   Image as ImageIcon,
   Edit2,
+  Trash2,
+  Plus,
+  ExternalLink,
   X,
   Search,
   CheckCircle2,
@@ -52,12 +55,75 @@ export default function BackofficeClient({
   const [editConteudo, setEditConteudo] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // Modal de Criação de Secção / Conteúdo
+  const [addingSection, setAddingSection] = useState(false);
+  const [addTipoMode, setAddTipoMode] = useState<'existente' | 'novo'>('existente');
+  const [addTipoId, setAddTipoId] = useState<string>(tipos[0] ? String(tipos[0].id_tipo) : '');
+  const [addNovoTipoNome, setAddNovoTipoNome] = useState('');
+  const [addDesignacao, setAddDesignacao] = useState('');
+  const [addConteudo, setAddConteudo] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   function showToast(type: 'success' | 'error', message: string) {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
+  }
+
+  async function handleAddSection(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/backoffice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo_id: addTipoMode === 'existente' ? addTipoId : undefined,
+          novo_tipo: addTipoMode === 'novo' ? addNovoTipoNome : undefined,
+          designacao: addDesignacao,
+          conteudo: addConteudo,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao adicionar secção.');
+
+      showToast('success', 'Secção / elemento adicionado com sucesso.');
+      setAddingSection(false);
+      setAddDesignacao('');
+      setAddConteudo('');
+      setAddNovoTipoNome('');
+      if (data.id_tipo) {
+        setSelectedTipo(String(data.id_tipo));
+      }
+      router.refresh();
+      window.location.reload();
+    } catch (err: any) {
+      showToast('error', err.message || 'Erro ao criar secção.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteElement(id: number, type: 'texto' | 'imagem') {
+    if (!confirm('Tem a certeza que deseja eliminar este elemento?')) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/backoffice?id=${id}&type=${type}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao eliminar elemento.');
+
+      showToast('success', 'Elemento eliminado com sucesso.');
+      router.refresh();
+      window.location.reload();
+    } catch (err: any) {
+      showToast('error', err.message || 'Erro ao eliminar.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleOpenEditText(item: BackofficeItem) {
@@ -184,13 +250,35 @@ export default function BackofficeClient({
         </div>
       )}
 
-      {/* Header com Seletor por Categoria (Exatamente como Imagem 3) */}
+      {/* Header com Seletor por Categoria (Exatamente como Imagem 3) e Ações */}
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs space-y-4">
-        <div>
-          <h2 className="text-2xl font-bold text-neutral-900">BackOffice</h2>
-          <p className="text-xs text-neutral-500">
-            Gestão de conteúdos estáticos e imagens exibidos nas páginas públicas do website.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-neutral-900">BackOffice</h2>
+            <p className="text-xs text-neutral-500">
+              Gestão de conteúdos estáticos e imagens exibidos nas páginas públicas do website.
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3.5 py-2 border border-neutral-300 hover:bg-neutral-100 rounded-xl text-xs font-bold text-neutral-700 transition"
+              title="Abrir pré-visualização do website público numa nova aba"
+            >
+              <ExternalLink className="w-4 h-4 text-neutral-500" />
+              <span>Ver Website Público (Pré-visualização)</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => setAddingSection(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Adicionar Secção</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
@@ -313,13 +401,22 @@ export default function BackofficeClient({
                               <p className="text-xs text-neutral-700 leading-relaxed max-w-2xl whitespace-pre-wrap">
                                 {el.conteudo}
                               </p>
-                              <button
-                                onClick={() => handleOpenEditText(el)}
-                                className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg border border-amber-200 transition shrink-0"
-                                title="Editar Conteúdo"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  onClick={() => handleOpenEditText(el)}
+                                  className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg border border-amber-200 transition shrink-0"
+                                  title="Editar Conteúdo"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteElement(el.id_elemento, 'texto')}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition shrink-0"
+                                  title="Eliminar Elemento"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -436,6 +533,130 @@ export default function BackofficeClient({
                 >
                   <Upload className="w-4 h-4" />
                   <span>{loading ? 'A enviar...' : 'Enviar Nova Imagem'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Adicionar Secção / Conteúdo */}
+      {addingSection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
+            <button
+              onClick={() => setAddingSection(false)}
+              className="absolute top-4 right-4 p-1.5 text-neutral-400 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-neutral-900 mb-1">Adicionar Secção / Conteúdo</h3>
+            <p className="text-xs text-neutral-500 mb-4">
+              Crie uma nova secção para a página principal ou adicione um novo bloco de conteúdo.
+            </p>
+
+            <form onSubmit={handleAddSection} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase mb-2">
+                  Destino da Secção
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setAddTipoMode('existente')}
+                    className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
+                      addTipoMode === 'existente'
+                        ? 'border-red-600 bg-red-50 text-red-700'
+                        : 'border-neutral-200 bg-neutral-50 text-neutral-600'
+                    }`}
+                  >
+                    Secção Existente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddTipoMode('novo')}
+                    className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
+                      addTipoMode === 'novo'
+                        ? 'border-red-600 bg-red-50 text-red-700'
+                        : 'border-neutral-200 bg-neutral-50 text-neutral-600'
+                    }`}
+                  >
+                    + Criar Nova Secção
+                  </button>
+                </div>
+
+                {addTipoMode === 'existente' ? (
+                  <select
+                    value={addTipoId}
+                    onChange={(e) => setAddTipoId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-semibold"
+                  >
+                    {tipos.map((t) => (
+                      <option key={t.id_tipo} value={t.id_tipo}>
+                        {t.tipo_elemento}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Galeria de Prémios, História, Patrocinadores"
+                      value={addNovoTipoNome}
+                      onChange={(e) => setAddNovoTipoNome(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm focus:outline-none focus:border-red-600"
+                    />
+                    <span className="block mt-1 text-[11px] text-neutral-400">
+                      Isto criará uma nova categoria / secção no menu de gestão do Backoffice.
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase mb-1">
+                  Designação / Título do Bloco
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Título da Secção, Texto Introdutório"
+                  value={addDesignacao}
+                  onChange={(e) => setAddDesignacao(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 uppercase mb-1">
+                  Conteúdo do Texto
+                </label>
+                <textarea
+                  rows={5}
+                  required
+                  placeholder="Insira o texto que será apresentado na secção da página principal..."
+                  value={addConteudo}
+                  onChange={(e) => setAddConteudo(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-sm focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-neutral-100">
+                <button
+                  type="button"
+                  onClick={() => setAddingSection(false)}
+                  className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-100 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{loading ? 'A criar...' : 'Adicionar Secção'}</span>
                 </button>
               </div>
             </form>

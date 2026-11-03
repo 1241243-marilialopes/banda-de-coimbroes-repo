@@ -88,7 +88,15 @@ export default function CotasClient({
         body: JSON.stringify({ id_pagamento, mes, value: nextVal }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.updatedMonths) {
+        setCotas((prev) =>
+          prev.map((row) =>
+            row.id_pagamento === id_pagamento
+              ? { ...row, ...data.updatedMonths }
+              : row
+          )
+        );
+      } else if (data.success) {
         setCotas((prev) =>
           prev.map((row) => {
             if (row.id_pagamento === id_pagamento) {

@@ -35,8 +35,14 @@ export default async function SocioDashboardPage() {
   let quotas: any[] = [];
   let aniversarios: any[] = [];
   let proximosServicosAlerta: any[] = [];
+  let realNumeroSocio: any = user.id;
 
   try {
+    const uRow: any = await query('SELECT numero_socio FROM tb_utilizadores WHERE id_utilizador = ?', [user.id]);
+    if (uRow.length > 0 && uRow[0].numero_socio) {
+      realNumeroSocio = uRow[0].numero_socio;
+    }
+
     quotas = await query(
       `SELECT ano, janeiro, fevereiro, marco, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro, ano_completo 
        FROM tb_cota_mes 
@@ -141,7 +147,7 @@ export default async function SocioDashboardPage() {
             </div>
             <div className="px-5 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
               <span className="text-xs text-neutral-500 block uppercase font-bold">Número de Sócio</span>
-              <span className="text-xl font-black text-red-600">#{user.id}</span>
+              <span className="text-xl font-black text-red-600">#{realNumeroSocio}</span>
             </div>
           </div>
         </div>

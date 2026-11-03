@@ -37,8 +37,23 @@ export default async function MusicoDashboardPage() {
   let instrumentName = 'Geral';
   let aniversarios: any[] = [];
   let proximosServicosAlerta: any[] = [];
+  let realNumeroSocio: any = user.id;
+  let currentQuota: any = null;
 
   try {
+    const uRow: any = await query('SELECT numero_socio FROM tb_utilizadores WHERE id_utilizador = ?', [user.id]);
+    if (uRow.length > 0 && uRow[0].numero_socio) {
+      realNumeroSocio = uRow[0].numero_socio;
+    }
+
+    const cotaRows: any = await query(
+      'SELECT ano, janeiro, fevereiro, marco, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro, ano_completo FROM tb_cota_mes WHERE socio_id = ? ORDER BY ano DESC LIMIT 1',
+      [user.id]
+    );
+    if (cotaRows.length > 0) {
+      currentQuota = cotaRows[0];
+    }
+
     if (user.instrumento) {
       const inst: any = await query(
         'SELECT nome_instrumento FROM tb_instrumentos WHERE id_instrumento = ?',
@@ -47,7 +62,11 @@ export default async function MusicoDashboardPage() {
       if (inst.length > 0) instrumentName = inst[0].nome_instrumento;
 
       partituras = await query(
-        'SELECT id_partitura, nome, nome_ficheiro, ficheiro_partitura FROM tb_partituras WHERE instrumento = ? LIMIT 6',
+        `SELECT p.id_partitura, COALESCE(np.nome_partitura, p.nome_ficheiro) AS nome_partitura, p.nome_ficheiro, p.ficheiro_partitura 
+         FROM tb_partituras p
+         LEFT JOIN tb_nome_partituras np ON p.nome = np.id_nome_partitura
+         WHERE p.instrumento = ? 
+         ORDER BY p.id_partitura DESC LIMIT 6`,
         [user.instrumento]
       );
     }
@@ -56,7 +75,8 @@ export default async function MusicoDashboardPage() {
       `SELECT s.id_servico, s.nome_servico, s.data_inicial, p.confirmado 
        FROM tb_servicos s 
        LEFT JOIN tb_presencas p ON p.servico_id = s.id_servico AND p.musico_id = ?
-       ORDER BY s.data_inicial DESC LIMIT 4`,
+       WHERE s.data_inicial >= CURDATE()
+       ORDER BY s.data_inicial ASC LIMIT 5`,
       [user.id]
     );
 
@@ -151,7 +171,7 @@ export default async function MusicoDashboardPage() {
             </div>
             <div className="px-5 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
               <span className="text-xs text-neutral-500 block">Identificação</span>
-              <span className="text-base font-black text-neutral-900">#{user.id}</span>
+              <span className="text-base font-black text-neutral-900">#{realNumeroSocio}</span>
             </div>
           </div>
         </div>
@@ -200,7 +220,7 @@ export default async function MusicoDashboardPage() {
               </div>
               <div>
                 <h4 className="font-bold text-sm text-neutral-900">Presenças</h4>
-                <p className="text-xs text-neutral-500">Marcar disponibilidade</p>
+                <p className="text-xs text-neutral-500">Ver disponibilidade</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-red-600" />
@@ -241,19 +261,79 @@ export default async function MusicoDashboardPage() {
                 >
                   <div className="overflow-hidden pr-3">
                     <p className="font-bold text-sm text-neutral-900 truncate">
-                      {p.nome || p.nome_ficheiro}
+                      {p.nome_partitura || p.nome_ficheiro}
                     </p>
                     <span className="text-xs text-neutral-500">PDF de Partitura</span>
                   </div>
-                  <button
+                  <a
+                    href={`/api/partituras/download?id=${p.id_partitura}`}
+                    download
                     className="p-2 bg-red-600/10 hover:bg-red-600/20 text-red-600 rounded-lg transition"
                     title="Transferir partitura"
                   >
                     <Download className="w-4 h-4" />
-                  </button>
+                  </a>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Quotas do Músico / Sócio */}
+        <div id="cotas" className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-red-600" />
+                <span>Estado das Quotas de Sócio</span>
+              </h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Situação das mensalidades do exercício de {currentQuota?.ano || new Date().getFullYear()}
+              </p>
+            </div>
+            <Link
+              href="/musicos-socios/cotas"
+              className="text-xs font-bold text-red-600 hover:underline"
+            >
+              Consultar mapa completo →
+            </Link>
+          </div>
+
+          {currentQuota ? (
+            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-12 gap-2 mt-4">
+              {[
+                { name: 'Jan', val: currentQuota.janeiro },
+                { name: 'Fev', val: currentQuota.fevereiro },
+                { name: 'Mar', val: currentQuota.marco },
+                { name: 'Abr', val: currentQuota.abril },
+                { name: 'Mai', val: currentQuota.maio },
+                { name: 'Jun', val: currentQuota.junho },
+                { name: 'Jul', val: currentQuota.julho },
+                { name: 'Ago', val: currentQuota.agosto },
+                { name: 'Set', val: currentQuota.setembro },
+                { name: 'Out', val: currentQuota.outubro },
+                { name: 'Nov', val: currentQuota.novembro },
+                { name: 'Dez', val: currentQuota.dezembro },
+              ].map((m, idx) => (
+                <div
+                  key={idx}
+                  className={`p-2.5 rounded-xl text-center border text-xs font-bold transition ${
+                    m.val === 1
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-neutral-50 border-neutral-200 text-neutral-400'
+                  }`}
+                >
+                  <span className="block text-[11px] uppercase tracking-wider">{m.name}</span>
+                  <span className="text-[10px] block mt-0.5 font-semibold">
+                    {m.val === 1 ? '✓ Pago' : 'Pendente'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-neutral-500 py-3">
+              Sem registo de quotas atribuído para este ano civil.
+            </p>
           )}
         </div>
 
@@ -268,7 +348,7 @@ export default async function MusicoDashboardPage() {
               href="/musicos-socios/presencas"
               className="text-xs font-bold text-red-600 hover:underline"
             >
-              Gerir presenças →
+              Ver disponibilidade →
             </Link>
           </div>
 

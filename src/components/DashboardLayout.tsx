@@ -15,10 +15,8 @@ import {
   FileEdit,
   User,
   History,
-  LogOut,
   Menu,
   X,
-  ExternalLink,
   Music,
   Sun,
   Moon,
@@ -502,32 +500,6 @@ export default function DashboardLayout({
               </div>
             ))}
           </nav>
-        </div>
-
-        {/* Footer actions */}
-        <div className="pt-6 border-t border-neutral-200/60 dark:border-neutral-800 space-y-2">
-          <Link
-            href="/"
-            className={`flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition ${
-              isDark
-                ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
-                : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
-            }`}
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Ver Website Público</span>
-          </Link>
-          <button
-            onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition ${
-              isDark
-                ? 'text-red-400 hover:bg-red-950/40 hover:text-red-300'
-                : 'text-red-600 hover:bg-red-50'
-            }`}
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Terminar Sessão</span>
-          </button>
         </div>
       </aside>
 

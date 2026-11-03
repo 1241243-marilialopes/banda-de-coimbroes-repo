@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Calendar,
   CheckCircle2,
@@ -31,40 +31,30 @@ export default function MusicoPresencasClient({
 }) {
   const [presencas, setPresencas] = useState<MusicoPresencaRow[]>(initialPresencas);
   const [search, setSearch] = useState('');
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  function showToast(type: 'success' | 'error', message: string) {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 4000);
-  }
+  // REGRA DE NEGÓCIO: Atualização em tempo real (polling a cada 3s) da presença definida pelo Admin
+  useEffect(() => {
+    let isMounted = true;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/musico/presencas');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.presencas) {
+            setPresencas(data.presencas);
+          }
+        }
+      } catch {
+        // Silencioso em caso de falha de polling
+      }
+    }, 3000);
 
-  async function handleTogglePresenca(id_presenca: number) {
-    setUpdatingId(id_presenca);
-
-    try {
-      const res = await fetch('/api/musico/presenca/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_presenca }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao marcar presença.');
-
-      setPresencas((prev) =>
-        prev.map((p) =>
-          p.id_presenca === id_presenca ? { ...p, confirmado: data.confirmado } : p
-        )
-      );
-
-      showToast('success', data.message || 'Presença atualizada com sucesso!');
-    } catch (err: any) {
-      showToast('error', err.message || 'Erro de comunicação');
-    } finally {
-      setUpdatingId(null);
-    }
-  }
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const filtered = presencas.filter((p) => {
     if (!search.trim()) return true;

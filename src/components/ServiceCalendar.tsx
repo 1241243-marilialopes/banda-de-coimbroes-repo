@@ -58,45 +58,8 @@ function formatModalDate(val?: string) {
 export default function ServiceCalendar({ events, isAdmin = false }: ServiceCalendarProps) {
   const today = new Date();
 
-  // Calcular o mês inicial com base nos eventos registados na base de dados
-  const [currentDate, setCurrentDate] = useState(() => {
-    if (!events || events.length === 0) {
-      return new Date(today.getFullYear(), today.getMonth(), 1);
-    }
-
-    const todayStr = today.toISOString().slice(0, 10);
-    // Verificar se há eventos no mês atual
-    const thisMonthEvents = events.filter((e) => {
-      const d = new Date(e.data_inicial);
-      return (
-        !isNaN(d.getTime()) &&
-        d.getFullYear() === today.getFullYear() &&
-        d.getMonth() === today.getMonth()
-      );
-    });
-    if (thisMonthEvents.length > 0) {
-      return new Date(today.getFullYear(), today.getMonth(), 1);
-    }
-
-    // Procura evento futuro mais próximo
-    const futureEvent = events.find((e) => {
-      const dStr = String(e.data_inicial).slice(0, 10);
-      return dStr >= todayStr;
-    });
-    if (futureEvent) {
-      const d = new Date(futureEvent.data_inicial);
-      if (!isNaN(d.getTime())) return new Date(d.getFullYear(), d.getMonth(), 1);
-    }
-
-    // Se todos forem no passado (como dados de 2025), abre no mês do último evento registado na BD
-    const lastEvent = events[events.length - 1];
-    if (lastEvent) {
-      const d = new Date(lastEvent.data_inicial);
-      if (!isNaN(d.getTime())) return new Date(d.getFullYear(), d.getMonth(), 1);
-    }
-
-    return new Date(today.getFullYear(), today.getMonth(), 1);
-  });
+  // O calendário deve abrir sempre com o mês e dia de hoje predefinidos
+  const [currentDate, setCurrentDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
 
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
