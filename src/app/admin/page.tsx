@@ -69,9 +69,11 @@ export default async function AdminDashboardPage() {
     const cotasStats: any = await query(
       `SELECT 
          COUNT(*) as total_socios_cotas,
-         SUM(CASE WHEN ano_completo = 'COMPLETO' THEN 1 ELSE 0 END) as total_regularizadas
-       FROM tb_cota_mes WHERE ano = ?`,
-      [currentYear]
+         SUM(CASE WHEN c.ano_completo = 1 THEN 1 ELSE 0 END) as total_regularizadas
+       FROM tb_cota_mes c
+       LEFT JOIN tb_ano a ON c.ano = a.id_ano
+       WHERE a.ano = ? OR c.ano = ?`,
+      [currentYear, currentYear]
     );
     if (cotasStats.length > 0) {
       cotasTotal = cotasStats[0].total_socios_cotas || 0;

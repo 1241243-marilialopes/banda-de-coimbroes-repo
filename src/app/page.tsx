@@ -16,7 +16,12 @@ interface ImageItem {
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: { preview?: string };
+}) {
+  const isPreview = searchParams?.preview === 'true';
   const contentMap: Record<string, string> = {};
   const imageMap: Record<string, string> = {};
 
@@ -36,6 +41,6 @@ export default async function HomePage() {
     console.warn('Base de dados não disponível no momento. A utilizar dados padrão.', err);
   }
 
-  return <HomeClient contentMap={contentMap} imageMap={imageMap} />;
+  return <HomeClient contentMap={contentMap} imageMap={imageMap} isPreview={isPreview} />;
 }
 

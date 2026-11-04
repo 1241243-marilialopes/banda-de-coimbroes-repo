@@ -7,10 +7,19 @@ import { Menu, X, User } from 'lucide-react';
 
 interface NavbarProps {
   onOpenLogin: () => void;
+  isPreview?: boolean;
 }
 
-export default function Navbar({ onOpenLogin }: NavbarProps) {
+export default function Navbar({ onOpenLogin, isPreview = false }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  function handleLoginClick() {
+    if (isPreview) {
+      alert('Modo de Pré-visualização: O login e o acesso à Área Reservada estão desativados.');
+      return;
+    }
+    onOpenLogin();
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#171717]/95 backdrop-blur-md border-b border-neutral-800 transition-all duration-300">
@@ -48,11 +57,15 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
               Contacto
             </Link>
             <button
-              onClick={onOpenLogin}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-lg shadow-md shadow-red-900/40 transition active:scale-95"
+              onClick={handleLoginClick}
+              className={`flex items-center gap-2 font-bold px-4 py-2.5 rounded-lg shadow-md transition active:scale-95 ${
+                isPreview
+                  ? 'bg-neutral-800 text-neutral-400 border border-neutral-700 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700 text-white shadow-red-900/40'
+              }`}
             >
               <User className="w-4 h-4" />
-              <span>Área Reservada</span>
+              <span>{isPreview ? 'Login (Desativado)' : 'Área Reservada'}</span>
             </button>
           </div>
 
@@ -103,12 +116,16 @@ export default function Navbar({ onOpenLogin }: NavbarProps) {
           <button
             onClick={() => {
               setIsOpen(false);
-              onOpenLogin();
+              handleLoginClick();
             }}
-            className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-3 rounded-lg shadow-md shadow-red-900/40 transition mt-2"
+            className={`w-full flex items-center justify-center gap-2 font-bold px-4 py-3 rounded-lg shadow-md transition mt-2 ${
+              isPreview
+                ? 'bg-neutral-800 text-neutral-400 border border-neutral-700 cursor-not-allowed'
+                : 'bg-red-600 hover:bg-red-700 text-white shadow-red-900/40'
+            }`}
           >
             <User className="w-5 h-5" />
-            <span>Área Reservada</span>
+            <span>{isPreview ? 'Login (Desativado)' : 'Área Reservada'}</span>
           </button>
         </div>
       )}

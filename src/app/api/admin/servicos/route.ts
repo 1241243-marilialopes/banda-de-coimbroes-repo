@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel } = body;
+    const { nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel, valor, cachet } = body;
 
     if (!nome || !data_inicial || !data_final) {
       return NextResponse.json({ error: 'Nome, data inicial e data final são obrigatórios.' }, { status: 400 });
@@ -28,6 +28,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cachetVal =
+      cachet !== undefined && cachet !== null && cachet !== ''
+        ? Number(cachet)
+        : valor !== undefined && valor !== null && valor !== ''
+        ? Number(valor)
+        : 0;
+
     const TYPE_COLORS: Record<number, string> = {
       1: '#2563eb', // Concerto
       2: '#dc2626', // Festa
@@ -38,8 +45,8 @@ export async function POST(req: NextRequest) {
 
     const res: any = await query(
       `INSERT INTO tb_servicos 
-       (nome_servico, descricao_servico, tipo, color, data_inicial, data_final, localizacao, contacto_comissao, nome_comissao) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (nome_servico, descricao_servico, tipo, color, data_inicial, data_final, localizacao, cachet, contacto_comissao, nome_comissao) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nome,
         descricao || '',
@@ -48,6 +55,7 @@ export async function POST(req: NextRequest) {
         data_inicial,
         data_final,
         localizacao || '',
+        cachetVal,
         contacto || '',
         responsavel || '',
       ]
@@ -86,7 +94,7 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { id_servico, nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel } = body;
+    const { id_servico, nome, descricao, tipo, data_inicial, data_final, localizacao, contacto, responsavel, valor, cachet } = body;
 
     if (!id_servico || !nome || !data_inicial || !data_final) {
       return NextResponse.json({ error: 'Dados incompletos.' }, { status: 400 });
@@ -102,6 +110,13 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const cachetVal =
+      cachet !== undefined && cachet !== null && cachet !== ''
+        ? Number(cachet)
+        : valor !== undefined && valor !== null && valor !== ''
+        ? Number(valor)
+        : 0;
+
     const TYPE_COLORS: Record<number, string> = {
       1: '#2563eb', // Concerto
       2: '#dc2626', // Festa
@@ -113,7 +128,7 @@ export async function PUT(req: NextRequest) {
     await query(
       `UPDATE tb_servicos 
        SET nome_servico = ?, descricao_servico = ?, tipo = ?, color = ?, data_inicial = ?, data_final = ?, 
-           localizacao = ?, contacto_comissao = ?, nome_comissao = ?
+           localizacao = ?, cachet = ?, contacto_comissao = ?, nome_comissao = ?
        WHERE id_servico = ?`,
       [
         nome,
@@ -123,6 +138,7 @@ export async function PUT(req: NextRequest) {
         data_inicial,
         data_final,
         localizacao || '',
+        cachetVal,
         contacto || '',
         responsavel || '',
         id_servico,

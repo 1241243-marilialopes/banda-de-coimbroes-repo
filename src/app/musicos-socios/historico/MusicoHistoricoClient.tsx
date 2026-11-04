@@ -20,6 +20,7 @@ interface HistoricoItem {
   confirmado: string;
   pago: number;
   musico_label_pago?: string;
+  cachet?: number;
 }
 
 export default function MusicoHistoricoClient({
@@ -133,13 +134,20 @@ export default function MusicoHistoricoClient({
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span
-                          className={`text-xs font-black uppercase ${
-                            isPago ? 'text-emerald-600' : 'text-neutral-400'
-                          }`}
-                        >
-                          {isPago ? 'Pago' : 'Não Pago'}
-                        </span>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span
+                            className={`text-xs font-black uppercase ${
+                              isPago ? 'text-emerald-600' : 'text-neutral-400'
+                            }`}
+                          >
+                            {isPago ? 'Pago' : 'Não Pago'}
+                          </span>
+                          {h.cachet && Number(h.cachet) > 0 ? (
+                            <span className="text-[11px] font-bold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
+                              {Number(h.cachet).toFixed(2)} €
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );

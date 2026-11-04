@@ -68,6 +68,13 @@ export default function CotasClient({
   const [search, setSearch] = useState('');
   const [updatingCell, setUpdatingCell] = useState<string | null>(null);
 
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  function showToast(type: 'success' | 'error', message: string) {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
+  }
+
   // Ficha de Pagamento Modal
   const [fichaModalUser, setFichaModalUser] = useState<CotaMemberRow | null>(null);
   const [tipoPagamento, setTipoPagamento] = useState<number>(1);
@@ -88,6 +95,8 @@ export default function CotasClient({
         body: JSON.stringify({ id_pagamento, mes, value: nextVal }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao guardar quota');
+
       if (data.success && data.updatedMonths) {
         setCotas((prev) =>
           prev.map((row) =>
@@ -96,38 +105,11 @@ export default function CotasClient({
               : row
           )
         );
-      } else if (data.success) {
-        setCotas((prev) =>
-          prev.map((row) => {
-            if (row.id_pagamento === id_pagamento) {
-              if (mes === 'ano_completo') {
-                return {
-                  ...row,
-                  janeiro: nextVal,
-                  fevereiro: nextVal,
-                  marco: nextVal,
-                  abril: nextVal,
-                  maio: nextVal,
-                  junho: nextVal,
-                  julho: nextVal,
-                  agosto: nextVal,
-                  setembro: nextVal,
-                  outubro: nextVal,
-                  novembro: nextVal,
-                  dezembro: nextVal,
-                  ano_completo: nextVal,
-                };
-              }
-              const updated = { ...row, [mes]: nextVal };
-              const allPaid = MONTHS.every((m) => (m.key === mes ? nextVal === 1 : (updated as any)[m.key] === 1));
-              return { ...updated, ano_completo: allPaid ? 1 : 0 };
-            }
-            return row;
-          })
-        );
+        showToast('success', 'Quota guardada na base de dados com sucesso.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao atualizar quota:', err);
+      showToast('error', err.message || 'Erro ao guardar quota na base de dados.');
     } finally {
       setUpdatingCell(null);
     }
@@ -145,6 +127,29 @@ export default function CotasClient({
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold transition-all ${
+            toast.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {toast.type === 'success' ? (
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <X className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{toast.message}</span>
+          </div>
+          <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border border-neutral-200 rounded-2xl shadow-xs">
         <div className="flex items-center gap-3">

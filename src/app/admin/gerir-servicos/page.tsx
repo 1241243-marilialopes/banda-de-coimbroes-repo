@@ -27,7 +27,7 @@ export default async function AdminGerirServicosPage() {
 
     rawServicos = (await query(
       `SELECT s.id_servico, s.nome_servico, s.descricao_servico, s.tipo, ts.tipo_servico,
-              s.color, s.data_inicial, s.data_final, s.localizacao, s.contacto_comissao, 
+              s.color, s.data_inicial, s.data_final, s.localizacao, s.cachet, s.contacto_comissao, 
               s.nome_comissao
        FROM tb_servicos s
        LEFT JOIN tb_tipos_servicos ts ON s.tipo = ts.id_tipo
@@ -47,6 +47,8 @@ export default async function AdminGerirServicosPage() {
     data_inicial: serializeDate(s.data_inicial),
     data_final: serializeDate(s.data_final),
     localizacao: s.localizacao || '',
+    cachet: s.cachet !== null && s.cachet !== undefined ? Number(s.cachet) : 0,
+    valor: s.cachet !== null && s.cachet !== undefined ? Number(s.cachet) : 0,
     contacto_comissao: s.contacto_comissao || '',
     nome_comissao: s.nome_comissao || '',
   }));

@@ -15,6 +15,7 @@ import {
   FileEdit,
   User,
   History,
+  LogOut,
   Menu,
   X,
   Music,
@@ -500,6 +501,22 @@ export default function DashboardLayout({
               </div>
             ))}
           </nav>
+        </div>
+
+        {/* Footer actions: Logout no fundo da navbar a vermelho */}
+        <div className="pt-4 mt-6 border-t border-neutral-200/60 dark:border-neutral-800">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition ${
+              isDark
+                ? 'text-red-400 bg-red-950/30 hover:bg-red-900/40 hover:text-red-300'
+                : 'text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700'
+            }`}
+          >
+            <LogOut className="w-4 h-4 text-red-600" />
+            <span>Terminar Sessão</span>
+          </button>
         </div>
       </aside>
 

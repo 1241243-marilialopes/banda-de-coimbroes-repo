@@ -47,7 +47,13 @@ export default async function MusicoDashboardPage() {
     }
 
     const cotaRows: any = await query(
-      'SELECT ano, janeiro, fevereiro, marco, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro, ano_completo FROM tb_cota_mes WHERE socio_id = ? ORDER BY ano DESC LIMIT 1',
+      `SELECT c.ano, COALESCE(a.ano, c.ano) as ano_real, 
+              c.janeiro, c.fevereiro, c.marco, c.abril, c.maio, c.junho, 
+              c.julho, c.agosto, c.setembro, c.outubro, c.novembro, c.dezembro, c.ano_completo 
+       FROM tb_cota_mes c
+       LEFT JOIN tb_ano a ON c.ano = a.id_ano
+       WHERE c.socio_id = ? 
+       ORDER BY a.ano DESC, c.ano DESC LIMIT 1`,
       [user.id]
     );
     if (cotaRows.length > 0) {
@@ -161,10 +167,7 @@ export default async function MusicoDashboardPage() {
         <div className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-black uppercase tracking-widest text-red-600">
-                Caderneta Digital
-              </span>
-              <h2 className="text-2xl font-black text-neutral-900 mt-1">Bem-vindo, {user.nome}!</h2>
+              <h2 className="text-2xl font-black text-neutral-900">Bem-vindo, {user.nome}!</h2>
               <p className="text-sm text-neutral-500 mt-1">
                 Instrumento ativo: <strong className="text-red-600 font-bold">{instrumentName}</strong>
               </p>
@@ -288,7 +291,7 @@ export default async function MusicoDashboardPage() {
                 <span>Estado das Quotas de Sócio</span>
               </h3>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Situação das mensalidades do exercício de {currentQuota?.ano || new Date().getFullYear()}
+                Situação das mensalidades do exercício de {currentQuota?.ano_real || currentQuota?.ano || new Date().getFullYear()}
               </p>
             </div>
             <Link

@@ -261,7 +261,7 @@ export default function BackofficeClient({
           </div>
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <a
-              href="/"
+              href="/?preview=true"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3.5 py-2 border border-neutral-300 hover:bg-neutral-100 rounded-xl text-xs font-bold text-neutral-700 transition"

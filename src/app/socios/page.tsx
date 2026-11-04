@@ -44,10 +44,13 @@ export default async function SocioDashboardPage() {
     }
 
     quotas = await query(
-      `SELECT ano, janeiro, fevereiro, marco, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro, ano_completo 
-       FROM tb_cota_mes 
-       WHERE socio_id = ? 
-       ORDER BY ano DESC LIMIT 3`,
+      `SELECT c.id_pagamento, COALESCE(a.ano, c.ano) as ano, 
+              c.janeiro, c.fevereiro, c.marco, c.abril, c.maio, c.junho, 
+              c.julho, c.agosto, c.setembro, c.outubro, c.novembro, c.dezembro, c.ano_completo 
+       FROM tb_cota_mes c
+       LEFT JOIN tb_ano a ON c.ano = a.id_ano
+       WHERE c.socio_id = ? 
+       ORDER BY a.ano DESC, c.ano DESC LIMIT 3`,
       [user.id]
     );
 
@@ -133,14 +136,11 @@ export default async function SocioDashboardPage() {
           </div>
         </div>
 
-        {/* Cartão de Sócio */}
+        {/* Saudação do Sócio */}
         <div className="p-6 bg-white border border-neutral-200 rounded-2xl shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-black uppercase tracking-widest text-red-600">
-                Cartão de Associado
-              </span>
-              <h2 className="text-2xl font-black text-neutral-900 mt-1">{user.nome}</h2>
+              <h2 className="text-2xl font-black text-neutral-900">Bem-vindo, {user.nome}!</h2>
               <p className="text-sm text-neutral-500 mt-1">
                 Sociedade Musical 1º de Agosto • Sócio Ativo
               </p>

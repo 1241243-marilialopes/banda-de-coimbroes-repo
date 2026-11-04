@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const rows: any = await query(
-      `SELECT s.id_servico, s.nome_servico, s.descricao_servico, s.data_inicial, s.data_final, s.localizacao,
+      `SELECT s.id_servico, s.nome_servico, s.descricao_servico, s.data_inicial, s.data_final, s.localizacao, s.cachet,
               p.id_presenca, p.confirmado, p.pago, p.musico_label_pago
        FROM tb_servicos s
        LEFT JOIN tb_presencas p ON p.servico_id = s.id_servico AND p.musico_id = ?
@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
       data_inicial: formatDisplayDate(r.data_inicial),
       data_final: formatDisplayDate(r.data_final),
       localizacao: r.localizacao || '',
+      cachet: r.cachet ? Number(r.cachet) : 0,
       confirmado: r.confirmado || 'Não confirmada',
       pago: r.pago !== undefined && r.pago !== null ? Number(r.pago) : 0,
       musico_label_pago: r.musico_label_pago || 'Por pagar',

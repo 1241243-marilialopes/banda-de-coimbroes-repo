@@ -12,9 +12,10 @@ import { MapPin, Phone, Mail, Plus, ChevronRight, Facebook, Instagram, Youtube }
 interface HomeClientProps {
   contentMap: Record<string, string>;
   imageMap: Record<string, string>;
+  isPreview?: boolean;
 }
 
-export default function HomeClient({ contentMap, imageMap }: HomeClientProps) {
+export default function HomeClient({ contentMap, imageMap, isPreview = false }: HomeClientProps) {
   const [loginOpen, setLoginOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<number | null>(null);
 
@@ -67,7 +68,18 @@ export default function HomeClient({ contentMap, imageMap }: HomeClientProps) {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white flex flex-col selection:bg-red-600 selection:text-white">
-      <Navbar onOpenLogin={() => setLoginOpen(true)} />
+      {isPreview && (
+        <div className="bg-amber-600 text-white px-4 py-2.5 text-xs sm:text-sm font-bold text-center shadow-lg flex items-center justify-center gap-2 sticky top-0 z-[60]">
+          <span className="bg-amber-800 text-amber-100 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-black">
+            Modo de Pré-visualização
+          </span>
+          <span>
+            Esta é apenas uma pré-visualização das secções do website público. Login e registo de novos sócios desativados.
+          </span>
+        </div>
+      )}
+
+      <Navbar onOpenLogin={() => !isPreview && setLoginOpen(true)} isPreview={isPreview} />
 
       {/* HERO SECTION */}
       <header className="relative w-full h-[90vh] sm:h-[94vh] flex items-center justify-center overflow-hidden">
@@ -97,13 +109,23 @@ export default function HomeClient({ contentMap, imageMap }: HomeClientProps) {
             >
               Conheça a Nossa História
             </Link>
-            <Link
-              href="/inscricao"
-              className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg backdrop-blur border border-white/25 transition duration-200 flex items-center gap-2 hover:scale-102"
-            >
-              <span>Tornar-se Sócio</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+            {isPreview ? (
+              <button
+                type="button"
+                onClick={() => alert('Modo de Pré-visualização: A adesão de associados está desativada.')}
+                className="px-8 py-3.5 bg-white/10 text-neutral-400 font-bold rounded-lg backdrop-blur border border-white/15 cursor-not-allowed flex items-center gap-2"
+              >
+                <span>Tornar-se Sócio (Desativado)</span>
+              </button>
+            ) : (
+              <Link
+                href="/inscricao"
+                className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg backdrop-blur border border-white/25 transition duration-200 flex items-center gap-2 hover:scale-102"
+              >
+                <span>Tornar-se Sócio</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -293,8 +315,8 @@ export default function HomeClient({ contentMap, imageMap }: HomeClientProps) {
       </footer>
 
       {/* MODAIS */}
-      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
-      <CookieBanner />
+      {!isPreview && <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />}
+      {!isPreview && <CookieBanner />}
 
       {directionItems.map((item) => (
         <DirectionModal

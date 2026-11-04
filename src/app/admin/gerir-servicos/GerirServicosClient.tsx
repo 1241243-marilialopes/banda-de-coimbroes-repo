@@ -29,6 +29,7 @@ interface ServicoItem {
   localizacao?: string;
   contacto_comissao?: string;
   nome_comissao?: string;
+  cachet?: number;
   valor?: number;
 }
 
@@ -112,6 +113,13 @@ export default function GerirServicosClient({
 
   function openEditModal(s: ServicoItem) {
     setEditingServico(s);
+    const existingCachet =
+      s.cachet !== undefined && s.cachet !== null && Number(s.cachet) > 0
+        ? String(s.cachet)
+        : s.valor !== undefined && s.valor !== null && Number(s.valor) > 0
+        ? String(s.valor)
+        : '';
+
     setFormData({
       nome: s.nome_servico || '',
       descricao: s.descricao_servico || '',
@@ -121,7 +129,7 @@ export default function GerirServicosClient({
       localizacao: s.localizacao || '',
       contacto: s.contacto_comissao || '',
       responsavel: s.nome_comissao || '',
-      valor: s.valor !== undefined && s.valor !== null ? String(s.valor) : '',
+      valor: existingCachet,
     });
     setErrorMsg('');
     setModalOpen(true);
@@ -144,8 +152,8 @@ export default function GerirServicosClient({
       const method = isEdit ? 'PUT' : 'POST';
 
       const payload = isEdit
-        ? { ...formData, id_servico: editingServico.id_servico }
-        : formData;
+        ? { ...formData, cachet: formData.valor, id_servico: editingServico.id_servico }
+        : { ...formData, cachet: formData.valor };
 
       const res = await fetch(url, {
         method,
@@ -347,7 +355,7 @@ export default function GerirServicosClient({
                       {s.localizacao || '—'}
                     </td>
                     <td className="py-3 px-4 text-xs font-bold text-neutral-800">
-                      {s.valor ? `${s.valor} €` : '—'}
+                      {s.cachet || s.valor ? `${Number(s.cachet || s.valor).toFixed(2)} €` : '—'}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="inline-flex items-center gap-1.5">

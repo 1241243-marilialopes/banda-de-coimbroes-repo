@@ -22,6 +22,7 @@ interface MusicoPresencaRow {
   confirmado: string;
   pago: number;
   musico_label_pago?: string;
+  cachet?: number;
 }
 
 export default function MusicoPresencasClient({
@@ -182,13 +183,20 @@ export default function MusicoPresencasClient({
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span
-                          className={`text-xs font-black uppercase ${
-                            isPago ? 'text-emerald-600' : 'text-red-500'
-                          }`}
-                        >
-                          {isPago ? 'Pago' : 'Por pagar'}
-                        </span>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span
+                            className={`text-xs font-black uppercase ${
+                              isPago ? 'text-emerald-600' : 'text-red-500'
+                            }`}
+                          >
+                            {isPago ? 'Pago' : 'Por pagar'}
+                          </span>
+                          {p.cachet && Number(p.cachet) > 0 ? (
+                            <span className="text-[11px] font-bold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
+                              {Number(p.cachet).toFixed(2)} €
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );

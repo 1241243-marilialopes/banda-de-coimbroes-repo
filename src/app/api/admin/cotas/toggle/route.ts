@@ -30,11 +30,6 @@ export async function POST(req: NextRequest) {
     const updatedMonths: Record<string, number> = {};
 
     if (mes === 'ano_completo') {
-      for (const m of monthOrder) {
-        updatedMonths[m] = val;
-      }
-      updatedMonths['ano_completo'] = val;
-
       await query(
         `UPDATE tb_cota_mes 
          SET janeiro = ?, fevereiro = ?, marco = ?, abril = ?, maio = ?, junho = ?,
@@ -50,11 +45,6 @@ export async function POST(req: NextRequest) {
           const setClauses: string[] = [];
           for (let i = 0; i <= idx; i++) {
             setClauses.push(`${monthOrder[i]} = 1`);
-            updatedMonths[monthOrder[i]] = 1;
-          }
-          if (idx === 11) {
-            setClauses.push(`ano_completo = 1`);
-            updatedMonths['ano_completo'] = 1;
           }
           await query(
             `UPDATE tb_cota_mes SET ${setClauses.join(', ')} WHERE id_pagamento = ?`,
@@ -65,19 +55,38 @@ export async function POST(req: NextRequest) {
           const setClauses: string[] = [];
           for (let i = idx; i < monthOrder.length; i++) {
             setClauses.push(`${monthOrder[i]} = 0`);
-            updatedMonths[monthOrder[i]] = 0;
           }
-          setClauses.push(`ano_completo = 0`);
-          updatedMonths['ano_completo'] = 0;
           await query(
             `UPDATE tb_cota_mes SET ${setClauses.join(', ')} WHERE id_pagamento = ?`,
             [id_pagamento]
           );
         }
+
+        // Recalcular com precisão se todos os 12 meses estão pagos
+        await query(
+          `UPDATE tb_cota_mes 
+           SET ano_completo = CASE 
+             WHEN (janeiro = 1 AND fevereiro = 1 AND marco = 1 AND abril = 1 AND maio = 1 AND junho = 1 AND 
+                   julho = 1 AND agosto = 1 AND setembro = 1 AND outubro = 1 AND novembro = 1 AND dezembro = 1) 
+             THEN 1 ELSE 0 END 
+           WHERE id_pagamento = ?`,
+          [id_pagamento]
+        );
       }
     }
 
-    return NextResponse.json({ success: true, updatedMonths });
+    // Consultar a linha guardada para garantir 100% de integridade com a BD
+    const updatedRows: any = await query(
+      'SELECT janeiro, fevereiro, marco, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro, ano_completo FROM tb_cota_mes WHERE id_pagamento = ?',
+      [id_pagamento]
+    );
+
+    const savedRow = updatedRows[0] || {};
+    return NextResponse.json({
+      success: true,
+      message: 'Quota guardada com sucesso.',
+      updatedMonths: savedRow,
+    });
   } catch (err: any) {
     console.error('Erro ao atualizar cota:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
